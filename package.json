@@ -1,0 +1,28 @@
+{
+    "name": "nodejs-mentoring-program",
+    "version": "1.0.0",
+    "description": "The purpose of this repo is to make homeworks of nodeJS mentoring program",
+    "main": "index.js",
+    "scripts": {
+        "watch": "npx nodemon",
+        "lint": "eslint --ext *.ts"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/antonionick/NodeJS-Mentoring-Program.git"
+    },
+    "author": "Anton Halauko",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/antonionick/NodeJS-Mentoring-Program/issues"
+    },
+    "homepage": "https://github.com/antonionick/NodeJS-Mentoring-Program#readme",
+    "devDependencies": {
+        "@types/node": "18.11.9",
+        "@typescript-eslint/eslint-plugin": "5.45.0",
+        "@typescript-eslint/parser": "5.45.0",
+        "eslint": "8.28.0",
+        "nodemon": "2.0.20",
+        "typescript": "4.9.3"
+    }
+}

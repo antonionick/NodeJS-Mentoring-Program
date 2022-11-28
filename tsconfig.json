@@ -1,0 +1,36 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "lib": [
+            "ESNext"
+        ],
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "module": "ESNext",
+        "rootDir": "src",
+        "moduleResolution": "nodenext",
+        "baseUrl": "./src/",
+        "resolveJsonModule": true,
+        "outDir": "dist",
+        "importHelpers": true,
+        "importsNotUsedAsValues": "error",
+        "newLine": "lf",
+        "noEmitOnError": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "strictBindCallApply": true,
+        "useUnknownInCatchVariables": true,
+        "alwaysStrict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noImplicitOverride": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "allowUnreachableCode": true,
+        "skipLibCheck": true
+    }
+}
