@@ -26,7 +26,7 @@
         "useUnknownInCatchVariables": true,
         "alwaysStrict": true,
         "noUnusedLocals": true,
-        "noUnusedParameters": true,
+        "noUnusedParameters": false,
         "noImplicitReturns": true,
         "noImplicitOverride": true,
         "noPropertyAccessFromIndexSignature": true,

@@ -5,7 +5,8 @@
     "main": "index.js",
     "scripts": {
         "watch": "npx nodemon",
-        "lint": "eslint --ext *.ts"
+        "lint": "eslint --ext *.ts",
+        "task1": "node .dist/task1"
     },
     "repository": {
         "type": "git",
