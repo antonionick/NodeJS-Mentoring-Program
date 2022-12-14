@@ -25,12 +25,11 @@
         "strictBindCallApply": true,
         "useUnknownInCatchVariables": true,
         "alwaysStrict": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": false,
         "noImplicitReturns": true,
         "noImplicitOverride": true,
         "noPropertyAccessFromIndexSignature": true,
         "allowUnreachableCode": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "allowJs": true
     }
 }
