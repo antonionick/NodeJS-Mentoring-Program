@@ -2,13 +2,9 @@
     "name": "nodejs-mentoring-program",
     "version": "1.0.0",
     "description": "The purpose of this repo is to make homeworks of nodeJS mentoring program",
-    "main": "index.js",
     "scripts": {
-        "watch": "npm run copy-mock && tsc -w",
-        "lint": "eslint --ext *.ts",
-        "copy-mock": "npx copyfiles -f src/csv/* dist/csv",
-        "task1": "node dist/task1",
-        "task2": "node dist/task2"
+        "watch": "tsc -w",
+        "lint": "eslint --ext *.ts"
     },
     "repository": {
         "type": "git",
@@ -21,15 +17,10 @@
     },
     "homepage": "https://github.com/antonionick/NodeJS-Mentoring-Program#readme",
     "devDependencies": {
-        "@types/csvtojson": "2.0.0",
         "@types/node": "18.11.9",
         "@typescript-eslint/eslint-plugin": "5.45.0",
         "@typescript-eslint/parser": "5.45.0",
-        "copyfiles": "2.4.1",
         "eslint": "8.28.0",
         "typescript": "4.9.3"
-    },
-    "dependencies": {
-        "csvtojson": "2.0.10"
     }
 }
