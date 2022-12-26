@@ -9,7 +9,14 @@
         "module": "CommonJS",
         "rootDir": "src",
         "moduleResolution": "node",
-        "baseUrl": "src",
+        "baseUrl": "./src",
+        "paths": {
+            "@core/*": ["core/*"],
+            "@components/*": ["components/*"],
+            "@controllers/*": ["controllers/*"],
+            "@database/*": ["database/*"],
+            "@routes/*": ["routes/*"]
+        },
         "resolveJsonModule": true,
         "outDir": "dist",
         "importHelpers": true,
@@ -30,6 +37,6 @@
         "noPropertyAccessFromIndexSignature": true,
         "allowUnreachableCode": true,
         "skipLibCheck": true,
-        "allowJs": true
+        "allowJs": true,
     }
 }
