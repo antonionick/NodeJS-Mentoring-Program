@@ -77,6 +77,25 @@ export class UserController {
         };
     }
 
+    public static async deleteUser(
+        request: Request,
+        response: Response,
+        next: CallableFunction,
+    ): Promise<void> {
+        const userService = UserController.getUserService();
+        const userIdToDelete = request.params['id'];
+
+        try {
+            const isDeleted = await userService.deleteUser(userIdToDelete);
+            response
+                .status(200)
+                .send(isDeleted);
+            next();
+        } catch (err) {
+            // TODO:
+        }
+    }
+
     private static getUserService(): UserService {
         if (!UserController.userService) {
             const userDatabase = UserController.getUserDatabase();

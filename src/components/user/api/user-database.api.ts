@@ -6,6 +6,7 @@ export interface IUserDatabaseAPI {
 
     createUser(userData: IUserDataToCreate): Promise<IUserDatabaseData>;
     updateUser(id: string, userData: IUserDataToUpdate): Promise<IUserDatabaseData>;
+    deleteUser(id: string): Promise<boolean>;
 
     checkUserExistenceById(id: string): Promise<boolean>;
     checkUserExistenceByLogin(login: string): Promise<boolean>;

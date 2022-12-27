@@ -9,6 +9,7 @@ export function getUserRoutes(): Router {
 
     userRouter.post('/', UserController.createUser);
     userRouter.put('/:id', UserController.updateUser);
+    userRouter.delete('/:id', UserController.deleteUser);
 
     return userRouter;
 }

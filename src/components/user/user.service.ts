@@ -33,12 +33,22 @@ export class UserService {
         userData: IUserDataToUpdate,
     ): Promise<User> {
         const isUserExist = await this.database.checkUserExistenceById(id);
-        if (isUserExist) {
+        if (!isUserExist) {
             // TODO: Throw an error
         }
 
         const userDatabaseData = await this.database.updateUser(id, userData);
         const user = this.getUserByDatabaseData(userDatabaseData);
         return user;
+    }
+
+    public async deleteUser(id: string): Promise<boolean> {
+        const isUserExist = await this.database.checkUserExistenceById(id);
+        if (!isUserExist) {
+            // TODO: Throw an error
+        }
+
+        const isDeleted = await this.database.deleteUser(id);
+        return isDeleted;
     }
 }

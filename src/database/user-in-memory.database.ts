@@ -43,12 +43,32 @@ export class UserInMemoryDatabase implements IUserDatabaseAPI {
         return databaseDataToUpdate;
     }
 
+    public async deleteUser(id: string): Promise<boolean> {
+        const existenceUserData = this.storage.get(id);
+        const databaseDataToUpdate = {
+            ...existenceUserData!,
+            isDeleted: true,
+        };
+
+        this.storage.set(id, databaseDataToUpdate);
+
+        return true;
+    }
+
     public async checkUserExistenceById(id: string): Promise<boolean> {
-        return this.storage.has(id);
+        const notDeletedDatabaseData = this.getNotDeletedDatabaseDatas();
+        return !!notDeletedDatabaseData.find(databaseData => databaseData.id === id);
     }
 
     public async checkUserExistenceByLogin(login: string): Promise<boolean> {
+        const notDeletedDatabaseData = this.getNotDeletedDatabaseDatas();
+        return notDeletedDatabaseData.some(databaseData => databaseData.login === login);
+    }
+
+    private getNotDeletedDatabaseDatas(): IUserDatabaseData[] {
         const valuesArray = Array.from(this.storage.values());
-        return valuesArray.some(databaseData => databaseData.login === login);
+        const notDeletedValues = valuesArray.filter(value => !value.isDeleted);
+
+        return notDeletedValues;
     }
 }
