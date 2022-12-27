@@ -1,12 +1,14 @@
 import { Initializable } from '@core/utils/initializable';
 
-export interface IUserCreationData {
+export interface IUserDataToCreate {
     login: string;
     password: string;
     age: number;
 }
 
-export interface IUserDatabaseData extends IUserCreationData {
+export interface IUserDataToUpdate extends Omit<IUserDataToCreate, 'login'> { }
+
+export interface IUserDatabaseData extends IUserDataToCreate {
     id: string;
     isDeleted: boolean;
 }

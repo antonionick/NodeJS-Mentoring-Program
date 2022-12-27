@@ -1,5 +1,5 @@
 import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
-import { IUserCreationData, IUserDatabaseData, User } from '@components/user/user.models';
+import { IUserDataToCreate, IUserDatabaseData, User, IUserDataToUpdate } from '@components/user/user.models';
 
 export class UserService {
     constructor(
@@ -7,7 +7,7 @@ export class UserService {
     ) { }
 
     public async createUser(
-        userData: IUserCreationData,
+        userData: IUserDataToCreate,
     ): Promise<User> {
         const isUserExist = await this.database.checkUserExistenceByLogin(userData.login);
         if (isUserExist) {
@@ -26,5 +26,19 @@ export class UserService {
             password: userDatabaseData.password,
             age: userDatabaseData.age,
         });
+    }
+
+    public async updateUser(
+        id: string,
+        userData: IUserDataToUpdate,
+    ): Promise<User> {
+        const isUserExist = await this.database.checkUserExistenceById(id);
+        if (isUserExist) {
+            // TODO: Throw an error
+        }
+
+        const userDatabaseData = await this.database.updateUser(id, userData);
+        const user = this.getUserByDatabaseData(userDatabaseData);
+        return user;
     }
 }
