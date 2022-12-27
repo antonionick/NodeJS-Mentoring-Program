@@ -1,12 +1,10 @@
+import { UserController } from '@controllers/user.controllers';
 import { Router } from 'express';
 
 export function getUserRoutes(): Router {
     const userRouter = Router();
 
-    userRouter.get('');
-    userRouter.post('');
-    userRouter.put('');
-    userRouter.delete('');
+    userRouter.post('/', UserController.createUser);
 
     return userRouter;
 }

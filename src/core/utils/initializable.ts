@@ -1,9 +1,7 @@
-export class Initializable<T = unknown> {
-    constructor(init: T) {
-        this.assignInitValues(init);
-    }
-
-    protected assignInitValues(data: T): void {
-        Object.assign(this, data);
-    }
+export abstract class Initializable<T = unknown> {
+	protected initialize?(init?: T): void {
+		if (init) {
+			Object.assign(this, init);
+		}
+	}
 }

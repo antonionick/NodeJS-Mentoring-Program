@@ -1,10 +1,11 @@
 import type { Express } from 'express';
-import { getUserRoutes } from '@routes/user-routes';
+import { getUserRoutes } from '@routes/user.routes';
 
+// TODO: Check how to name by REST
 enum Routes {
-    User = 'User',
+    User = 'user',
 }
 
 export function initRoutes(app: Express): void {
-    app.use(Routes.User, getUserRoutes());
+    app.use(`/${Routes.User}`, getUserRoutes());
 }
