@@ -9,7 +9,7 @@ export class UserService {
     public async getUserById(id: string): Promise<User> {
         const userDatabaseModel = await this.database.getUserById(id);
         if (!userDatabaseModel) {
-            // TODO: Error
+            throw new Error(`User with id: ${id} is not exist`);
         }
 
         const user = this.convertDatabaseModelToUser(userDatabaseModel);
@@ -21,9 +21,9 @@ export class UserService {
         limit: number,
     ): Promise<User[]> {
         if (Number.isNaN(limit)) {
-            // TODO: Error
+            throw new Error('Limit should be a number');
         }
-        if (!limit) {
+        if (limit <= 0) {
             return [];
         }
 
@@ -39,7 +39,7 @@ export class UserService {
     ): Promise<User> {
         const isUserExist = await this.database.checkUserExistenceByLogin(userData.login);
         if (isUserExist) {
-            // TODO: Throw an error
+            throw new Error(`User with login: ${userData.login} is already exist`);
         }
 
         const userDatabaseModel = await this.database.createUser(userData);
@@ -62,7 +62,7 @@ export class UserService {
     ): Promise<User> {
         const isUserExist = await this.database.checkUserExistenceById(id);
         if (!isUserExist) {
-            // TODO: Throw an error
+            throw new Error(`User with id: ${id} is not exist`);
         }
 
         const userDatabaseModel = await this.database.updateUser(id, userData);
@@ -73,7 +73,7 @@ export class UserService {
     public async deleteUser(id: string): Promise<boolean> {
         const isUserExist = await this.database.checkUserExistenceById(id);
         if (!isUserExist) {
-            // TODO: Throw an error
+            throw new Error(`User with id: ${id} is not exist`);
         }
 
         const isDeleted = await this.database.deleteUser(id);

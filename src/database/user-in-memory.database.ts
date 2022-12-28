@@ -17,7 +17,6 @@ export class UserInMemoryDatabase implements IUserDatabaseAPI {
             databaseModel: IUserDatabaseModel,
         ): IUserDatabaseModel[] => {
             if (acc.length < limit && databaseModel.login.includes(loginSubstring)) {
-                console.log('here we are');
                 return [
                     ...acc,
                     databaseModel,

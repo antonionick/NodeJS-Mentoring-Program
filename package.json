@@ -39,6 +39,7 @@
         "@components": "dist/components",
         "@controllers": "dist/controllers",
         "@database": "dist/database",
-        "@routes": "dist/routes"
+        "@routes": "dist/routes",
+        "@common": "dist/common"
     }
 }

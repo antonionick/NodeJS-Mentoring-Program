@@ -15,7 +15,8 @@
             "@components/*": ["components/*"],
             "@controllers/*": ["controllers/*"],
             "@database/*": ["database/*"],
-            "@routes/*": ["routes/*"]
+            "@routes/*": ["routes/*"],
+            "@common/*": ["common/*"]
         },
         "resolveJsonModule": true,
         "outDir": "dist",

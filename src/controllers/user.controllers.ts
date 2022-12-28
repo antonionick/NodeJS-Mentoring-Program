@@ -2,7 +2,7 @@ import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
 import type { IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
 import { UserService } from '@components/user/user.service';
 import { UserInMemoryDatabase } from '@database/user-in-memory.database';
-import type { Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 
 export class UserController {
     private static userService: UserService;
@@ -11,7 +11,7 @@ export class UserController {
     public static async getUserById(
         request: Request,
         response: Response,
-        next: CallableFunction,
+        next: NextFunction,
     ): Promise<void> {
         const userService = UserController.getUserService();
         const id = request.params.id;
@@ -23,14 +23,14 @@ export class UserController {
                 .json(user);
             next();
         } catch (err) {
-            // TODO: Error handler
+            next(err);
         }
     }
 
     public static async getAutosuggest(
         request: Request,
         response: Response,
-        next: CallableFunction,
+        next: NextFunction,
     ): Promise<void> {
         const userService = UserController.getUserService();
         const { limit, loginSubstring } = request.query;
@@ -44,14 +44,14 @@ export class UserController {
                 .json(autosuggestUsers);
             next();
         } catch (err) {
-            // TODO: Error handler
+            next(err);
         }
     }
 
     public static async createUser(
         request: Request,
         response: Response,
-        next: CallableFunction,
+        next: NextFunction,
     ): Promise<void> {
         const userService = UserController.getUserService();
         const userDataToCreate = UserController.getUserDataToCreate(request);
@@ -63,7 +63,7 @@ export class UserController {
                 .json(user);
             next();
         } catch (err) {
-            // TODO: Error handler
+            next(err);
         }
     }
 
@@ -78,7 +78,7 @@ export class UserController {
     public static async updateUser(
         request: Request,
         response: Response,
-        next: CallableFunction,
+        next: NextFunction,
     ): Promise<void> {
         const userService = UserController.getUserService();
         const userDataToUpdate = UserController.getUserDataToUpdate(request);
@@ -91,7 +91,7 @@ export class UserController {
                 .json(user);
             next();
         } catch (err) {
-            // TODO: Error handler
+            next(err);
         }
     }
 
@@ -105,7 +105,7 @@ export class UserController {
     public static async deleteUser(
         request: Request,
         response: Response,
-        next: CallableFunction,
+        next: NextFunction,
     ): Promise<void> {
         const userService = UserController.getUserService();
         const userIdToDelete = request.params.id;
@@ -117,7 +117,7 @@ export class UserController {
                 .send(isDeleted);
             next();
         } catch (err) {
-            // TODO: Error handler
+            next(err);
         }
     }
 
