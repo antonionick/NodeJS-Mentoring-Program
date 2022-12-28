@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 
-export function appErrorHandler(
+export function commonErrorHandler(
     error: Error,
     request: Request,
     response: Response,

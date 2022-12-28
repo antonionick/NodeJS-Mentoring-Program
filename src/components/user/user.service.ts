@@ -1,9 +1,12 @@
+import { ValidationStatus } from '@common/validation/validation-status';
 import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
+import type { IUserValidatorAPI } from '@components/user/api/user-validator.api';
 import { IUserDataToCreate, IUserDatabaseModel, User, IUserDataToUpdate } from '@components/user/user.models';
 
 export class UserService {
     constructor(
         private readonly database: IUserDatabaseAPI,
+        private readonly validator: IUserValidatorAPI,
     ) { }
 
     public async getUserById(id: string): Promise<User> {
@@ -20,14 +23,14 @@ export class UserService {
         loginSubstring: string,
         limit: number,
     ): Promise<User[]> {
-        if (Number.isNaN(limit)) {
-            throw new Error('Limit should be a number');
-        }
-        if (limit <= 0) {
-            return [];
+        const validationResult = this.validator
+            .validateAutosuggestParams(loginSubstring, limit);
+        if (validationResult.status === ValidationStatus.Fail) {
+            throw validationResult;
         }
 
-        const autosuggestDatabaseModels = await this.database.getAutoSuggestUsers(loginSubstring, limit);
+        const autosuggestDatabaseModels = await this.database
+            .getAutoSuggestUsers(loginSubstring, limit);
         const autosuggestUsers = autosuggestDatabaseModels
             .map(this.convertDatabaseModelToUser);
 
@@ -37,6 +40,12 @@ export class UserService {
     public async createUser(
         userData: IUserDataToCreate,
     ): Promise<User> {
+        const validationResult = this.validator
+            .validateUserDataToCreate(userData);
+        if (validationResult.status === ValidationStatus.Fail) {
+            throw validationResult;
+        }
+
         const isUserExist = await this.database.checkUserExistenceByLogin(userData.login);
         if (isUserExist) {
             throw new Error(`User with login: ${userData.login} is already exist`);
@@ -60,6 +69,12 @@ export class UserService {
         id: string,
         userData: IUserDataToUpdate,
     ): Promise<User> {
+        const validationResult = this.validator
+            .validateUserDataToUpdate(userData);
+        if (validationResult.status === ValidationStatus.Fail) {
+            throw validationResult;
+        }
+
         const isUserExist = await this.database.checkUserExistenceById(id);
         if (!isUserExist) {
             throw new Error(`User with id: ${id} is not exist`);

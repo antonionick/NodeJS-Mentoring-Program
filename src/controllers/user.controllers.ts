@@ -1,12 +1,15 @@
 import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
+import type { IUserValidatorAPI } from '@components/user/api/user-validator.api';
 import type { IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
 import { UserService } from '@components/user/user.service';
 import { UserInMemoryDatabase } from '@database/user-in-memory.database';
+import { UserJoiValidator } from '@validators/user/joi/user-joi-validator';
 import type { NextFunction, Request, Response } from 'express';
 
 export class UserController {
     private static userService: UserService;
     private static userDatabase: IUserDatabaseAPI;
+    private static userValidator: IUserValidatorAPI;
 
     public static async getUserById(
         request: Request,
@@ -124,7 +127,8 @@ export class UserController {
     private static getUserService(): UserService {
         if (!UserController.userService) {
             const userDatabase = UserController.getUserDatabase();
-            const userService = new UserService(userDatabase);
+            const userValidator = UserController.getUserValidator();
+            const userService = new UserService(userDatabase, userValidator);
             UserController.userService = userService;
         }
         return UserController.userService;
@@ -136,5 +140,13 @@ export class UserController {
             UserController.userDatabase = userDatabase;
         }
         return UserController.userDatabase;
+    }
+
+    private static getUserValidator(): IUserValidatorAPI {
+        if (!UserController.userValidator) {
+            const userValidator = new UserJoiValidator();
+            UserController.userValidator = userValidator;
+        }
+        return UserController.userValidator;
     }
 }

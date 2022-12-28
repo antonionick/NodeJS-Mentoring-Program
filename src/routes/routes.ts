@@ -1,6 +1,7 @@
 import type { Express } from 'express';
 import { getUserRoutes } from '@routes/user.routes';
-import { appErrorHandler } from '@common/errors/app-error-handler';
+import { commonErrorHandler } from '@common/errors/common-error-handler';
+import { validatorErrorHandler } from '@common/errors/validator-error-handler';
 
 // TODO: Check how to name by REST
 enum Routes {
@@ -9,5 +10,9 @@ enum Routes {
 
 export function initRoutes(app: Express): void {
     app.use(`/${Routes.User}`, getUserRoutes());
-    app.use(appErrorHandler);
+
+    app.use(
+        validatorErrorHandler,
+        commonErrorHandler,
+    );
 }

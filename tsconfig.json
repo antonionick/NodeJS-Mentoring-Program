@@ -12,11 +12,12 @@
         "baseUrl": "./src",
         "paths": {
             "@core/*": ["core/*"],
+            "@common/*": ["common/*"],
+            "@routes/*": ["routes/*"],
+            "@database/*": ["database/*"],
             "@components/*": ["components/*"],
             "@controllers/*": ["controllers/*"],
-            "@database/*": ["database/*"],
-            "@routes/*": ["routes/*"],
-            "@common/*": ["common/*"]
+            "@validators/*": ["validators/*"]
         },
         "resolveJsonModule": true,
         "outDir": "dist",
