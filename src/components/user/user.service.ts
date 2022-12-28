@@ -1,5 +1,5 @@
 import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
-import { IUserDataToCreate, IUserDatabaseData, User, IUserDataToUpdate } from '@components/user/user.models';
+import { IUserDataToCreate, IUserDatabaseModel, User, IUserDataToUpdate } from '@components/user/user.models';
 
 export class UserService {
     constructor(
@@ -7,12 +7,12 @@ export class UserService {
     ) { }
 
     public async getUserById(id: string): Promise<User> {
-        const userDatabaseData = await this.database.getUserById(id);
-        if (!userDatabaseData) {
+        const userDatabaseModel = await this.database.getUserById(id);
+        if (!userDatabaseModel) {
             // TODO: Error
         }
 
-        const user = this.getUserByDatabaseData(userDatabaseData);
+        const user = this.convertDatabaseModelToUser(userDatabaseModel);
         return user;
     }
 
@@ -27,11 +27,9 @@ export class UserService {
             return [];
         }
 
-        const autosuggestDatabaseDatas = await this.database.getAutoSuggestUsers(loginSubstring, limit);
-        console.log(autosuggestDatabaseDatas);
-        const autosuggestUsers = autosuggestDatabaseDatas
-            .map(this.getUserByDatabaseData);
-        console.log(autosuggestUsers);
+        const autosuggestDatabaseModels = await this.database.getAutoSuggestUsers(loginSubstring, limit);
+        const autosuggestUsers = autosuggestDatabaseModels
+            .map(this.convertDatabaseModelToUser);
 
         return autosuggestUsers;
     }
@@ -44,18 +42,17 @@ export class UserService {
             // TODO: Throw an error
         }
 
-        const userDatabaseData = await this.database.createUser(userData);
-        const user = this.getUserByDatabaseData(userDatabaseData);
+        const userDatabaseModel = await this.database.createUser(userData);
+        const user = this.convertDatabaseModelToUser(userDatabaseModel);
         return user;
     }
 
-    // TODO: Rename
-    private getUserByDatabaseData(userDatabaseData: IUserDatabaseData): User {
+    private convertDatabaseModelToUser(userDatabaseModel: IUserDatabaseModel): User {
         return new User({
-            id: userDatabaseData.id,
-            login: userDatabaseData.login,
-            password: userDatabaseData.password,
-            age: userDatabaseData.age,
+            id: userDatabaseModel.id,
+            login: userDatabaseModel.login,
+            password: userDatabaseModel.password,
+            age: userDatabaseModel.age,
         });
     }
 
@@ -68,8 +65,8 @@ export class UserService {
             // TODO: Throw an error
         }
 
-        const userDatabaseData = await this.database.updateUser(id, userData);
-        const user = this.getUserByDatabaseData(userDatabaseData);
+        const userDatabaseModel = await this.database.updateUser(id, userData);
+        const user = this.convertDatabaseModelToUser(userDatabaseModel);
         return user;
     }
 

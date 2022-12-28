@@ -8,8 +8,7 @@ export interface IUserDataToCreate {
 
 export interface IUserDataToUpdate extends Omit<IUserDataToCreate, 'login'> { }
 
-// TODO: Rename
-export interface IUserDatabaseData extends IUserDataToCreate {
+export interface IUserDatabaseModel extends IUserDataToCreate {
     id: string;
     isDeleted: boolean;
 }
