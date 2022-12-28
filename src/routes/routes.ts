@@ -3,13 +3,12 @@ import { getUserRoutes } from '@routes/user.routes';
 import { commonErrorHandler } from '@common/errors/common-error-handler';
 import { validatorErrorHandler } from '@common/errors/validator-error-handler';
 
-// TODO: Check how to name by REST
 enum Routes {
-    User = 'user',
+    Users = 'users',
 }
 
 export function initRoutes(app: Express): void {
-    app.use(`/${Routes.User}`, getUserRoutes());
+    app.use(`/${Routes.Users}`, getUserRoutes());
 
     app.use(
         validatorErrorHandler,

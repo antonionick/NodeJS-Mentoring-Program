@@ -14,7 +14,7 @@ export function getDotenvOptions(): IDotenvOptions {
         return defaultOptions;
     }
 
-    const port = Number(parsed?.['port']);
+    const port = Number(parsed?.port);
     return {
         port: port || defaultOptions.port,
     };
