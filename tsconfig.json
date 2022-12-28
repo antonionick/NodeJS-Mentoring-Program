@@ -35,7 +35,6 @@
         "noImplicitReturns": true,
         "noImplicitOverride": true,
         "strictPropertyInitialization": false,
-        "noPropertyAccessFromIndexSignature": true,
         "allowUnreachableCode": true,
         "skipLibCheck": true,
         "allowJs": true,

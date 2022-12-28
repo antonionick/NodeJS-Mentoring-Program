@@ -4,8 +4,8 @@ import { Router } from 'express';
 export function getUserRoutes(): Router {
     const userRouter = Router();
 
-    // TODO: Remove, development purpose
-    userRouter.get('/', UserController.getUsers);
+    userRouter.get('/byId/:id', UserController.getUserById);
+    userRouter.get('/autosuggest', UserController.getAutosuggest);
 
     userRouter.post('/', UserController.createUser);
     userRouter.put('/:id', UserController.updateUser);

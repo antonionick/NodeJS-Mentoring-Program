@@ -8,19 +8,44 @@ export class UserController {
     private static userService: UserService;
     private static userDatabase: IUserDatabaseAPI;
 
-    // TODO: Remove
-    public static getUsers(
+    public static async getUserById(
         request: Request,
         response: Response,
         next: CallableFunction,
-    ): void {
-        const userDatabase = UserController.getUserDatabase();
-        const data = userDatabase.getAll();
+    ): Promise<void> {
+        const userService = UserController.getUserService();
+        const id = request.params.id;
 
-        response
-            .status(200)
-            .json(data);
-        next();
+        try {
+            const user = await userService.getUserById(id);
+            response
+                .status(200)
+                .json(user);
+            next();
+        } catch (err) {
+            // TODO: Error handler
+        }
+    }
+
+    public static async getAutosuggest(
+        request: Request,
+        response: Response,
+        next: CallableFunction,
+    ): Promise<void> {
+        const userService = UserController.getUserService();
+        const { limit, loginSubstring } = request.query;
+
+        try {
+            const autosuggestUsers = await userService
+                .getAutosuggestUsers(loginSubstring as string, Number(limit));
+
+            response
+                .status(200)
+                .json(autosuggestUsers);
+            next();
+        } catch (err) {
+            // TODO: Error handler
+        }
     }
 
     public static async createUser(
@@ -57,7 +82,7 @@ export class UserController {
     ): Promise<void> {
         const userService = UserController.getUserService();
         const userDataToUpdate = UserController.getUserDataToUpdate(request);
-        const userIdToUpdate = request.params['id'];
+        const userIdToUpdate = request.params.id;
 
         try {
             const user = await userService.updateUser(userIdToUpdate, userDataToUpdate);
@@ -66,7 +91,7 @@ export class UserController {
                 .json(user);
             next();
         } catch (err) {
-            // TODO:
+            // TODO: Error handler
         }
     }
 
@@ -83,7 +108,7 @@ export class UserController {
         next: CallableFunction,
     ): Promise<void> {
         const userService = UserController.getUserService();
-        const userIdToDelete = request.params['id'];
+        const userIdToDelete = request.params.id;
 
         try {
             const isDeleted = await userService.deleteUser(userIdToDelete);
@@ -92,7 +117,7 @@ export class UserController {
                 .send(isDeleted);
             next();
         } catch (err) {
-            // TODO:
+            // TODO: Error handler
         }
     }
 

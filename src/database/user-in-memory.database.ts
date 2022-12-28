@@ -1,12 +1,36 @@
 import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
 import type { IUserDataToCreate, IUserDatabaseData, IUserDataToUpdate } from '@components/user/user.models';
 import { randomUUID } from 'crypto';
+import { sortBy } from 'lodash';
 
 export class UserInMemoryDatabase implements IUserDatabaseAPI {
     private readonly storage = new Map<string, IUserDatabaseData>();
 
-    public getAll(): IUserDatabaseData[] {
-        return Array.from(this.storage.values());
+    public async getUserById(id: string): Promise<IUserDatabaseData> {
+        const user = this.storage.get(id);
+        return user!;
+    }
+
+    public async getAutoSuggestUsers(loginSubstring: string, limit: number): Promise<IUserDatabaseData[]> {
+        const notDeletedDatabaseData = this.getNotDeletedDatabaseDatas();
+
+        const autosuggestReducer = (
+            acc: IUserDatabaseData[],
+            databaseData: IUserDatabaseData,
+        ): IUserDatabaseData[] => {
+            if (acc.length < limit && databaseData.login.includes(loginSubstring)) {
+                console.log('here we are');
+                return [
+                    ...acc,
+                    databaseData,
+                ];
+            }
+            return acc;
+        };
+
+        const autosuggestData = notDeletedDatabaseData.reduce(autosuggestReducer, []);
+        const sortedAutosuggestData = sortBy(autosuggestData, ['login']);
+        return sortedAutosuggestData;
     }
 
     public async createUser(userData: IUserDataToCreate): Promise<IUserDatabaseData> {
@@ -56,8 +80,8 @@ export class UserInMemoryDatabase implements IUserDatabaseAPI {
     }
 
     public async checkUserExistenceById(id: string): Promise<boolean> {
-        const notDeletedDatabaseData = this.getNotDeletedDatabaseDatas();
-        return !!notDeletedDatabaseData.find(databaseData => databaseData.id === id);
+        const user = this.storage.get(id);
+        return !!user && !user.isDeleted;
     }
 
     public async checkUserExistenceByLogin(login: string): Promise<boolean> {

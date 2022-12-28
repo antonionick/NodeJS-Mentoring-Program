@@ -6,6 +6,36 @@ export class UserService {
         private readonly database: IUserDatabaseAPI,
     ) { }
 
+    public async getUserById(id: string): Promise<User> {
+        const userDatabaseData = await this.database.getUserById(id);
+        if (!userDatabaseData) {
+            // TODO: Error
+        }
+
+        const user = this.getUserByDatabaseData(userDatabaseData);
+        return user;
+    }
+
+    public async getAutosuggestUsers(
+        loginSubstring: string,
+        limit: number,
+    ): Promise<User[]> {
+        if (Number.isNaN(limit)) {
+            // TODO: Error
+        }
+        if (!limit) {
+            return [];
+        }
+
+        const autosuggestDatabaseDatas = await this.database.getAutoSuggestUsers(loginSubstring, limit);
+        console.log(autosuggestDatabaseDatas);
+        const autosuggestUsers = autosuggestDatabaseDatas
+            .map(this.getUserByDatabaseData);
+        console.log(autosuggestUsers);
+
+        return autosuggestUsers;
+    }
+
     public async createUser(
         userData: IUserDataToCreate,
     ): Promise<User> {
@@ -19,6 +49,7 @@ export class UserService {
         return user;
     }
 
+    // TODO: Rename
     private getUserByDatabaseData(userDatabaseData: IUserDatabaseData): User {
         return new User({
             id: userDatabaseData.id,
