@@ -5,6 +5,7 @@ import { UserService } from '@components/user/user.service';
 import { UserInMemoryDatabase } from '@database/user-in-memory.database';
 import { UserJoiValidator } from '@validators/user/joi/user-joi-validator';
 import type { NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes/build/cjs/status-codes';
 
 export class UserController {
     private static userService: UserService;
@@ -22,7 +23,7 @@ export class UserController {
         try {
             const user = await userService.getUserById(id);
             response
-                .status(200)
+                .status(StatusCodes.OK)
                 .json(user);
             next();
         } catch (err) {
@@ -43,7 +44,7 @@ export class UserController {
                 .getAutosuggestUsers(loginSubstring as string, Number(limit));
 
             response
-                .status(200)
+                .status(StatusCodes.OK)
                 .json(autosuggestUsers);
             next();
         } catch (err) {
@@ -62,7 +63,7 @@ export class UserController {
         try {
             const user = await userService.createUser(userDataToCreate);
             response
-                .status(200)
+                .status(StatusCodes.OK)
                 .json(user);
             next();
         } catch (err) {
@@ -90,7 +91,7 @@ export class UserController {
         try {
             const user = await userService.updateUser(userIdToUpdate, userDataToUpdate);
             response
-                .status(200)
+                .status(StatusCodes.OK)
                 .json(user);
             next();
         } catch (err) {
@@ -116,7 +117,7 @@ export class UserController {
         try {
             const isDeleted = await userService.deleteUser(userIdToDelete);
             response
-                .status(200)
+                .status(StatusCodes.OK)
                 .send(isDeleted);
             next();
         } catch (err) {

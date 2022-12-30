@@ -1,5 +1,6 @@
 import { ValidationResult } from '@common/validation/validation-result';
 import type { NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes/build/cjs/status-codes';
 
 export function validatorErrorHandler(
     error: unknown,
@@ -10,7 +11,7 @@ export function validatorErrorHandler(
     if (error instanceof ValidationResult) {
         const { errors } = error as ValidationResult;
         response
-            .status(400)
+            .status(StatusCodes.UNPROCESSABLE_ENTITY)
             .json(errors);
     }
 

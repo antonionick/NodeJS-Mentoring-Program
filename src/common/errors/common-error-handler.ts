@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
 
 export function commonErrorHandler(
     error: Error,
@@ -7,6 +8,6 @@ export function commonErrorHandler(
     next: NextFunction,
 ): void {
     response
-        .status(400)
+        .status(StatusCodes.BAD_REQUEST)
         .send(error.message);
 }
