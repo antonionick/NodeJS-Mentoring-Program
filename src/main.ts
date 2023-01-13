@@ -1,13 +1,17 @@
 import 'module-alias/register';
-import express from 'express';
-import { getDotenvOptions } from '@core/utils/dotenv-utils';
-import { initRoutes } from '@routes/routes';
+import { executeInitDatabaseScript } from '@database/postgresql/scripts/main';
+// import express from 'express';
+// import { getDotenvOptions } from '@core/utils/dotenv-utils';
+// import { initRoutes } from '@routes/routes';
 
-const app = express();
-const dotenvOptions = getDotenvOptions();
+// const app = express();
+// const dotenvOptions = getDotenvOptions();
 
-app.listen(dotenvOptions.port);
+// app.listen(dotenvOptions.port);
 
-app.use(express.json());
+// app.use(express.json());
 
-initRoutes(app);
+// initRoutes(app);
+
+
+executeInitDatabaseScript();
