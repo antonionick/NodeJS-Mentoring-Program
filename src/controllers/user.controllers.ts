@@ -2,14 +2,16 @@ import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
 import type { IUserValidatorAPI } from '@components/user/api/user-validator.api';
 import type { IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
 import { UserService } from '@components/user/user.service';
-import { UserInMemoryDatabase } from '@database/user-in-memory.database';
+import { UserInMemoryDatabase } from '@database/in-memory/user-in-memory.database';
+import type { IDatabaseProvider } from '@database/models/database-provider.models';
 import { UserJoiValidator } from '@validators/user/joi/user-joi-validator';
 import type { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes/build/cjs/status-codes';
 
 export class UserController {
+    public static databaseProvider: IDatabaseProvider;
+
     private static userService: UserService;
-    private static userDatabase: IUserDatabaseAPI;
     private static userValidator: IUserValidatorAPI;
 
     public static async getUserById(
@@ -127,20 +129,12 @@ export class UserController {
 
     private static getUserService(): UserService {
         if (!UserController.userService) {
-            const userDatabase = UserController.getUserDatabase();
+            const userDatabase = UserController.databaseProvider.getUserDatabase();
             const userValidator = UserController.getUserValidator();
             const userService = new UserService(userDatabase, userValidator);
             UserController.userService = userService;
         }
         return UserController.userService;
-    }
-
-    private static getUserDatabase(): IUserDatabaseAPI {
-        if (!UserController.userDatabase) {
-            const userDatabase = new UserInMemoryDatabase();
-            UserController.userDatabase = userDatabase;
-        }
-        return UserController.userDatabase;
     }
 
     private static getUserValidator(): IUserValidatorAPI {

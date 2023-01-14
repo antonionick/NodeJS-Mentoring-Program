@@ -1,7 +1,12 @@
 import { UserController } from '@controllers/user.controllers';
+import type { IDatabaseProvider } from '@database/models/database-provider.models';
 import { Router } from 'express';
 
-export function getUserRoutes(): Router {
+export function getUserRoutes(
+    databaseProvider: IDatabaseProvider,
+): Router {
+    UserController.databaseProvider = databaseProvider;
+
     const userRouter = Router();
 
     userRouter.get('/byId/:id', UserController.getUserById);

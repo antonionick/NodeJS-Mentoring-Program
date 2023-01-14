@@ -1,17 +1,24 @@
 import 'module-alias/register';
-import { executeInitDatabaseScript } from '@database/postgresql/scripts/main';
-// import express from 'express';
-// import { getDotenvOptions } from '@core/utils/dotenv-utils';
-// import { initRoutes } from '@routes/routes';
+import express from 'express';
+import { getDotenvOptions } from '@core/utils/dotenv-utils';
+import { initRoutes } from '@routes/routes';
+import { DatabaseResolver } from '@database/database.resolver';
 
-// const app = express();
-// const dotenvOptions = getDotenvOptions();
+class Main {
+    public static async initApp(): Promise<void> {
+        const dotenvOptions = getDotenvOptions();
 
-// app.listen(dotenvOptions.port);
+        const databaseProvider = await DatabaseResolver
+            .resolveDatabaseProvider(dotenvOptions.databaseConnectionString);
 
-// app.use(express.json());
+        const app = express();
 
-// initRoutes(app);
+        app.listen(dotenvOptions.port);
 
+        app.use(express.json());
 
-executeInitDatabaseScript();
+        initRoutes(app, databaseProvider);
+    }
+}
+
+Main.initApp();
