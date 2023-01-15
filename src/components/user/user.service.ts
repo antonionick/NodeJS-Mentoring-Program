@@ -46,6 +46,7 @@ export class UserService {
             throw validationResult;
         }
 
+        // TODO: move to database layer
         const isUserExist = await this.database.checkUserExistenceByLogin(userData.login);
         if (isUserExist) {
             throw new Error(`User with login: ${userData.login} is already exist`);
@@ -75,6 +76,7 @@ export class UserService {
             throw validationResult;
         }
 
+        // TODO: move to database layer
         const isUserExist = await this.database.checkUserExistenceById(id);
         if (!isUserExist) {
             throw new Error(`User with id: ${id} is not exist`);

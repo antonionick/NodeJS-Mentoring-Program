@@ -1,35 +1,16 @@
 import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
 import type { IUserDatabaseModel, IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
 import { UsersTableColumn, USERS_TABLE_NAME } from '@database/models/tables/users-table.models';
-import type { Client } from 'pg';
 
 export class UserPostgreSQLDatabase implements IUserDatabaseAPI {
-    constructor(
-        private readonly client: Client,
-    ) { }
+    // constructor(
+    //     private readonly client: Client,
+    // ) { }
 
     public async getUserById(
-        id: string,
+        userId: string,
     ): Promise<IUserDatabaseModel> {
-        const query = `
-            select * from ${USERS_TABLE_NAME}
-                where ${UsersTableColumn.userId} = '${id}'
-        `;
-
-        const queryResult = await this.client.query(query);
-        if (!queryResult.rowCount) {
-            return null!;
-        }
-
-        const row = queryResult.rows[0];
-        const userModel: IUserDatabaseModel = {
-            id: row.id,
-            login: row.login,
-            password: row.password,
-            age: row.age,
-            isDeleted: row.isDeleted,
-        };
-        return userModel;
+        return null!;
     }
 
     public async getAutoSuggestUsers(
