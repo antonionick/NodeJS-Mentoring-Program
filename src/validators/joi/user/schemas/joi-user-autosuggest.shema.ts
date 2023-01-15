@@ -1,6 +1,6 @@
 import Joi from 'joi';
 
-export const USER_JOI_AUTOSUGGEST_SCHEMA = Joi.object({
+export const JOI_USER_AUTOSUGGEST_SCHEMA = Joi.object({
     loginSubstring: Joi
         .string()
         .allow('')

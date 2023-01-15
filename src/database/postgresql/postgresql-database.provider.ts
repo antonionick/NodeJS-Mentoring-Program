@@ -1,9 +1,9 @@
 import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
 import { Initializable } from '@core/utils/initializable';
 import type { IDatabaseProvider, IDatabaseProviderInitOptions } from '@database/models/database-provider.models';
-import { UserPostgreSQLDatabase } from '@database/postgresql/database/user-postgresql.database';
+import { PostgreSQLUserDatabase } from '@database/postgresql/database/postgresql-user.database';
 import { POSTGRESQL_SEQUELIZE_OPTIONS } from '@database/postgresql/models/postgresql-sequelize.models';
-import { initUsersPostgreSQLModelAndAddPredefinedData, POSTGRESQL_USERS_TABLE_NAME } from '@database/postgresql/models/users-postgresql.models';
+import { initUsersPostgreSQLModelAndAddPredefinedData, POSTGRESQL_USERS_TABLE_NAME } from '@database/postgresql/models/postgresql-user.models';
 import { Sequelize } from 'sequelize';
 
 export class PostgresqlDatabaseProviderInitOptions
@@ -20,7 +20,7 @@ export class PostgresqlDatabaseProviderInitOptions
 
 export class PostgresqlDatabaseProvider implements IDatabaseProvider {
     private databaseInstance: Sequelize;
-    private userDatabaseInstance: UserPostgreSQLDatabase;
+    private userDatabaseInstance: PostgreSQLUserDatabase;
 
     public async initDatabase(
         { connectionString }: PostgresqlDatabaseProviderInitOptions,
@@ -45,7 +45,7 @@ export class PostgresqlDatabaseProvider implements IDatabaseProvider {
     public getUserDatabase(): IUserDatabaseAPI {
         if (!this.userDatabaseInstance) {
             const userModel = this.databaseInstance.models[POSTGRESQL_USERS_TABLE_NAME];
-            this.userDatabaseInstance = new UserPostgreSQLDatabase(userModel);
+            this.userDatabaseInstance = new PostgreSQLUserDatabase(userModel);
         }
         return this.userDatabaseInstance;
     }

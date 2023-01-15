@@ -1,6 +1,6 @@
 import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
 import type { IUserDatabaseModel, IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
-import { PostgreSQLUsersTableColumn } from '@database/postgresql/models/users-postgresql.models';
+import { PostgreSQLUsersTableColumn } from '@database/postgresql/models/postgresql-user.models';
 import { randomUUID } from 'crypto';
 import { Model, ModelCtor, Op } from 'sequelize';
 
@@ -8,7 +8,7 @@ const IS_DELETED_COMMON_QUERY = {
     [Op.not]: true,
 };
 
-export class UserPostgreSQLDatabase implements IUserDatabaseAPI {
+export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
     constructor(
         private readonly userDatabaseInstance: ModelCtor<Model>,
     ) { }
