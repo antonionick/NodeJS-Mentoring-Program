@@ -3,7 +3,7 @@ import { Initializable } from '@core/utils/initializable';
 import type { IDatabaseProvider, IDatabaseProviderInitOptions } from '@database/models/database-provider.models';
 import { UserPostgreSQLDatabase } from '@database/postgresql/database/user-postgresql.database';
 import { POSTGRESQL_SEQUELIZE_OPTIONS } from '@database/postgresql/models/postgresql-sequelize.models';
-import { initUsersPostgreSQLModelAndAddPredefinedData } from '@database/postgresql/models/users-postgresql.models';
+import { initUsersPostgreSQLModelAndAddPredefinedData, POSTGRESQL_USERS_TABLE_NAME } from '@database/postgresql/models/users-postgresql.models';
 import { Sequelize } from 'sequelize';
 
 export class PostgresqlDatabaseProviderInitOptions
@@ -33,7 +33,6 @@ export class PostgresqlDatabaseProvider implements IDatabaseProvider {
             this.databaseInstance = new Sequelize(connectionString, POSTGRESQL_SEQUELIZE_OPTIONS);
             await this.databaseInstance.authenticate();
             await this.initTables();
-            await this.databaseInstance.close();
         } catch (err) {
             // TODO: Error handling
         }
@@ -45,7 +44,8 @@ export class PostgresqlDatabaseProvider implements IDatabaseProvider {
 
     public getUserDatabase(): IUserDatabaseAPI {
         if (!this.userDatabaseInstance) {
-            this.userDatabaseInstance = new UserPostgreSQLDatabase();
+            const userModel = this.databaseInstance.models[POSTGRESQL_USERS_TABLE_NAME];
+            this.userDatabaseInstance = new UserPostgreSQLDatabase(userModel);
         }
         return this.userDatabaseInstance;
     }

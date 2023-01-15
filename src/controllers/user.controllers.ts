@@ -2,7 +2,6 @@ import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
 import type { IUserValidatorAPI } from '@components/user/api/user-validator.api';
 import type { IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
 import { UserService } from '@components/user/user.service';
-import { UserInMemoryDatabase } from '@database/in-memory/user-in-memory.database';
 import type { IDatabaseProvider } from '@database/models/database-provider.models';
 import { UserJoiValidator } from '@validators/user/joi/user-joi-validator';
 import type { NextFunction, Request, Response } from 'express';
