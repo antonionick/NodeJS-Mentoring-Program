@@ -1,23 +1,24 @@
-import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
-import type { IUserValidatorAPI } from '@components/user/api/user-validator.api';
 import type { IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
 import { UserService } from '@components/user/user.service';
-import { UserInMemoryDatabase } from '@database/user-in-memory.database';
-import { UserJoiValidator } from '@validators/user/joi/user-joi-validator';
+import type { IDatabaseProvider } from '@database/models/database-provider.models';
+import type { IValidatorProvider } from '@validators/models/validators-provider.models';
 import type { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes/build/cjs/status-codes';
 
 export class UserController {
-    private static userService: UserService;
-    private static userDatabase: IUserDatabaseAPI;
-    private static userValidator: IUserValidatorAPI;
+    private userService: UserService;
 
-    public static async getUserById(
+    constructor(
+        private readonly databaseProvider: IDatabaseProvider,
+        private readonly validatorProvider: IValidatorProvider,
+    ) { }
+
+    public async getUserById(
         request: Request,
         response: Response,
         next: NextFunction,
     ): Promise<void> {
-        const userService = UserController.getUserService();
+        const userService = this.getUserService();
         const id = request.params.id;
 
         try {
@@ -31,12 +32,12 @@ export class UserController {
         }
     }
 
-    public static async getAutosuggest(
+    public async getAutosuggest(
         request: Request,
         response: Response,
         next: NextFunction,
     ): Promise<void> {
-        const userService = UserController.getUserService();
+        const userService = this.getUserService();
         const { limit, loginSubstring } = request.query;
 
         try {
@@ -52,13 +53,13 @@ export class UserController {
         }
     }
 
-    public static async createUser(
+    public async createUser(
         request: Request,
         response: Response,
         next: NextFunction,
     ): Promise<void> {
-        const userService = UserController.getUserService();
-        const userDataToCreate = UserController.getUserDataToCreate(request);
+        const userService = this.getUserService();
+        const userDataToCreate = this.getUserDataToCreate(request);
 
         try {
             const user = await userService.createUser(userDataToCreate);
@@ -71,7 +72,7 @@ export class UserController {
         }
     }
 
-    private static getUserDataToCreate({ body }: Request): IUserDataToCreate {
+    private getUserDataToCreate({ body }: Request): IUserDataToCreate {
         return {
             login: body.login,
             password: body.password,
@@ -79,13 +80,13 @@ export class UserController {
         };
     }
 
-    public static async updateUser(
+    public async updateUser(
         request: Request,
         response: Response,
         next: NextFunction,
     ): Promise<void> {
-        const userService = UserController.getUserService();
-        const userDataToUpdate = UserController.getUserDataToUpdate(request);
+        const userService = this.getUserService();
+        const userDataToUpdate = this.getUserDataToUpdate(request);
         const userIdToUpdate = request.params.id;
 
         try {
@@ -99,19 +100,19 @@ export class UserController {
         }
     }
 
-    private static getUserDataToUpdate({ body }: Request): IUserDataToUpdate {
+    private getUserDataToUpdate({ body }: Request): IUserDataToUpdate {
         return {
             age: body.age,
             password: body.password,
         };
     }
 
-    public static async deleteUser(
+    public async deleteUser(
         request: Request,
         response: Response,
         next: NextFunction,
     ): Promise<void> {
-        const userService = UserController.getUserService();
+        const userService = this.getUserService();
         const userIdToDelete = request.params.id;
 
         try {
@@ -125,29 +126,13 @@ export class UserController {
         }
     }
 
-    private static getUserService(): UserService {
-        if (!UserController.userService) {
-            const userDatabase = UserController.getUserDatabase();
-            const userValidator = UserController.getUserValidator();
+    private getUserService(): UserService {
+        if (!this.userService) {
+            const userDatabase = this.databaseProvider.getUserDatabase();
+            const userValidator = this.validatorProvider.getUserValidator();
             const userService = new UserService(userDatabase, userValidator);
-            UserController.userService = userService;
+            this.userService = userService;
         }
-        return UserController.userService;
-    }
-
-    private static getUserDatabase(): IUserDatabaseAPI {
-        if (!UserController.userDatabase) {
-            const userDatabase = new UserInMemoryDatabase();
-            UserController.userDatabase = userDatabase;
-        }
-        return UserController.userDatabase;
-    }
-
-    private static getUserValidator(): IUserValidatorAPI {
-        if (!UserController.userValidator) {
-            const userValidator = new UserJoiValidator();
-            UserController.userValidator = userValidator;
-        }
-        return UserController.userValidator;
+        return this.userService;
     }
 }

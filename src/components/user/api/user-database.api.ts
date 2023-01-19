@@ -1,13 +1,13 @@
 import type { IUserDataToCreate, IUserDatabaseModel, IUserDataToUpdate } from '@components/user/user.models';
 
 export interface IUserDatabaseAPI {
-    getUserById(id: string): Promise<IUserDatabaseModel>;
+    getUserById(userId: string): Promise<IUserDatabaseModel>;
     getAutoSuggestUsers(loginSubstring: string, limit: number): Promise<IUserDatabaseModel[]>;
 
     createUser(userData: IUserDataToCreate): Promise<IUserDatabaseModel>;
-    updateUser(id: string, userData: IUserDataToUpdate): Promise<IUserDatabaseModel>;
-    deleteUser(id: string): Promise<boolean>;
+    updateUser(userId: string, userData: IUserDataToUpdate): Promise<IUserDatabaseModel>;
+    deleteUser(uerId: string): Promise<boolean>;
 
-    checkUserExistenceById(id: string): Promise<boolean>;
+    checkUserExistenceById(userId: string): Promise<boolean>;
     checkUserExistenceByLogin(login: string): Promise<boolean>;
 }

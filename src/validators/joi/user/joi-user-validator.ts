@@ -3,19 +3,19 @@ import { ValidationResult } from '@common/validation/validation-result';
 import { ValidationStatus } from '@common/validation/validation-status';
 import type { IUserValidatorAPI } from '@components/user/api/user-validator.api';
 import type { IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
-import { USER_JOI_AUTOSUGGEST_SCHEMA } from '@validators/user/joi/schemas/user-joi-autosuggest.shema';
-import { USER_JOI_CREATE_SCHEMA } from '@validators/user/joi/schemas/user-joi-create.schema';
-import { USER_JOI_UPDATE_SCHEMA } from '@validators/user/joi/schemas/user-joi-update.schema';
+import { JOI_USER_AUTOSUGGEST_SCHEMA } from '@validators/joi/user/schemas/joi-user-autosuggest.shema';
+import { JOI_USER_CREATE_SCHEMA } from '@validators/joi/user/schemas/joi-user-create.schema';
+import { JOI_USER_UPDATE_SCHEMA } from '@validators/joi/user/schemas/joi-user-update.schema';
 import type Joi from 'joi';
 
 const COMMON_JOI_VALIDATION_OPTIONS = { abortEarly: false };
 
-export class UserJoiValidator implements IUserValidatorAPI {
+export class JoiUserValidator implements IUserValidatorAPI {
     public validateAutosuggestParams(
         loginSubstring: string,
         limit: number,
     ): ValidationResult {
-        const joiValidationResult = USER_JOI_AUTOSUGGEST_SCHEMA.validate(
+        const joiValidationResult = JOI_USER_AUTOSUGGEST_SCHEMA.validate(
             { loginSubstring, limit },
             COMMON_JOI_VALIDATION_OPTIONS,
         );
@@ -47,7 +47,7 @@ export class UserJoiValidator implements IUserValidatorAPI {
     public validateUserDataToCreate(
         userDataToCreate: IUserDataToCreate,
     ): ValidationResult {
-        const joiValidationResult = USER_JOI_CREATE_SCHEMA.validate(
+        const joiValidationResult = JOI_USER_CREATE_SCHEMA.validate(
             userDataToCreate,
             COMMON_JOI_VALIDATION_OPTIONS,
         );
@@ -58,7 +58,7 @@ export class UserJoiValidator implements IUserValidatorAPI {
     public validateUserDataToUpdate(
         userDataToUpdate: IUserDataToUpdate,
     ): ValidationResult {
-        const joiValidationResult = USER_JOI_UPDATE_SCHEMA.validate(
+        const joiValidationResult = JOI_USER_UPDATE_SCHEMA.validate(
             userDataToUpdate,
             COMMON_JOI_VALIDATION_OPTIONS,
         );
