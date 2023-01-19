@@ -7,15 +7,15 @@ import { PostgresqlDatabaseProvider, PostgresqlDatabaseProviderInitOptions } fro
 import { JoiValidatorProvider } from '@validators/joi/joi-validator.provider';
 
 class Main {
-    public static async initApp(): Promise<void> {
+    public static async init(): Promise<void> {
         const dotenvOptions = getDotenvOptions();
 
         const validatorProvider = new JoiValidatorProvider();
         const databaseProvider = await Main.initPostgreSQLProvider(dotenvOptions.databaseConnectionString);
 
-        const server = Main.initServer(dotenvOptions.port);
+        const app = Main.initApp(dotenvOptions.port);
 
-        initRoutes(server, databaseProvider, validatorProvider);
+        initRoutes(app, databaseProvider, validatorProvider);
     }
 
     private static async initPostgreSQLProvider(
@@ -31,12 +31,12 @@ class Main {
         return database;
     }
 
-    private static initServer(port: number): Express {
-        const expressServer = express();
-        expressServer.listen(port);
-        expressServer.use(express.json());
-        return expressServer;
+    private static initApp(port: number): Express {
+        const app = express();
+        app.listen(port);
+        app.use(express.json());
+        return app;
     }
 }
 
-Main.initApp();
+Main.init();

@@ -10,13 +10,13 @@ enum Routes {
 }
 
 export function initRoutes(
-    server: Express,
+    app: Express,
     databaseProvider: IDatabaseProvider,
     validatorProvider: IValidatorProvider,
 ): void {
-    server.use(`/${Routes.Users}`, getUserRoutes(databaseProvider, validatorProvider));
+    app.use(`/${Routes.Users}`, getUserRoutes(databaseProvider, validatorProvider));
 
-    server.use(
+    app.use(
         validatorErrorHandler,
         commonErrorHandler,
     );
