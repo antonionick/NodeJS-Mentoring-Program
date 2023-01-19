@@ -1,5 +1,5 @@
 import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
-import { Initializable } from '@core/utils/initializable';
+import { Initializable } from '@common/utils/initializable';
 import type { IDatabaseProvider, IDatabaseProviderInitOptions } from '@database/models/database-provider.models';
 import { PostgreSQLUserDatabase } from '@database/postgresql/database/postgresql-user.database';
 import { POSTGRESQL_SEQUELIZE_OPTIONS } from '@database/postgresql/models/postgresql-sequelize.models';

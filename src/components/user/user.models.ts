@@ -1,4 +1,4 @@
-import { Initializable } from '@core/utils/initializable';
+import { Initializable } from '@common/utils/initializable';
 
 export interface IUserDataToCreate {
     login: string;

@@ -44,7 +44,7 @@
         "sequelize": "6.28.0"
     },
     "_moduleAliases": {
-        "@core": "dist/core",
+        "@config": "dist/config",
         "@common": "dist/common",
         "@routes": "dist/routes",
         "@database": "dist/database",

@@ -1,4 +1,4 @@
-import { Initializable } from '@core/utils/initializable';
+import { Initializable } from '@common/utils/initializable';
 
 export class ValidationError extends Initializable<ValidationError> {
     public path: string;
