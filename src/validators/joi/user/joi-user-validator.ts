@@ -1,11 +1,11 @@
-import { ValidationError } from '@common/validation/validation-error';
-import { ValidationResult } from '@common/validation/validation-result';
-import { ValidationStatus } from '@common/validation/validation-status';
 import type { IUserValidatorAPI } from '@components/user/api/user-validator.api';
 import type { IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
 import { JOI_USER_AUTOSUGGEST_SCHEMA } from '@validators/joi/user/schemas/joi-user-autosuggest.shema';
 import { JOI_USER_CREATE_SCHEMA } from '@validators/joi/user/schemas/joi-user-create.schema';
 import { JOI_USER_UPDATE_SCHEMA } from '@validators/joi/user/schemas/joi-user-update.schema';
+import { ValidationError } from '@validators/models/validation-error';
+import { ValidationResult } from '@validators/models/validation-result';
+import { ValidationStatus } from '@validators/models/validation-status';
 import type Joi from 'joi';
 
 const COMMON_JOI_VALIDATION_OPTIONS = { abortEarly: false };

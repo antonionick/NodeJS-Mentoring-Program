@@ -1,4 +1,4 @@
-import { ValidationStatus } from '@common/validation/validation-status';
+import { ValidationStatus } from '@validators/models/validation-status';
 import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
 import type { IUserValidatorAPI } from '@components/user/api/user-validator.api';
 import { IUserDataToCreate, IUserDatabaseModel, User, IUserDataToUpdate } from '@components/user/user.models';

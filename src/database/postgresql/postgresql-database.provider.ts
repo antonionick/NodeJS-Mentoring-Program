@@ -5,6 +5,7 @@ import { PostgreSQLUserDatabase } from '@database/postgresql/database/postgresql
 import { POSTGRESQL_SEQUELIZE_OPTIONS } from '@database/postgresql/models/postgresql-sequelize.models';
 import { initUsersPostgreSQLModelAndAddPredefinedData, POSTGRESQL_USERS_TABLE_NAME } from '@database/postgresql/models/postgresql-user.models';
 import { Sequelize } from 'sequelize';
+import { PostgreSQLDatabaseErrorsConverter } from '@database/postgresql/errors-converter/postgresql-database-errors-converter';
 
 export class PostgresqlDatabaseProviderInitOptions
     extends Initializable<PostgresqlDatabaseProviderInitOptions>
@@ -21,6 +22,7 @@ export class PostgresqlDatabaseProviderInitOptions
 export class PostgresqlDatabaseProvider implements IDatabaseProvider {
     private databaseInstance: Sequelize;
     private userDatabaseInstance: PostgreSQLUserDatabase;
+    private databaseErrorsConverter: PostgreSQLDatabaseErrorsConverter;
 
     public async initDatabase(
         { connectionString }: PostgresqlDatabaseProviderInitOptions,
@@ -45,8 +47,16 @@ export class PostgresqlDatabaseProvider implements IDatabaseProvider {
     public getUserDatabase(): IUserDatabaseAPI {
         if (!this.userDatabaseInstance) {
             const userModel = this.databaseInstance.models[POSTGRESQL_USERS_TABLE_NAME];
-            this.userDatabaseInstance = new PostgreSQLUserDatabase(userModel);
+            const errorsConverter = this.getErrorsConverter();
+            this.userDatabaseInstance = new PostgreSQLUserDatabase(userModel, errorsConverter);
         }
         return this.userDatabaseInstance;
+    }
+
+    private getErrorsConverter(): PostgreSQLDatabaseErrorsConverter {
+        if (!this.databaseErrorsConverter) {
+            this.databaseErrorsConverter = new PostgreSQLDatabaseErrorsConverter();
+        }
+        return this.databaseErrorsConverter;
     }
 }
