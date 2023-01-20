@@ -1,5 +1,9 @@
-import { Sequelize, Model, ModelCtor, DataTypes } from 'sequelize';
+import { DataTypes } from 'sequelize';
+import { Model, Table, Sequelize } from 'sequelize-typescript';
 import { randomUUID } from 'crypto';
+import { Column } from 'sequelize-typescript/dist/model/column/column';
+import { AllowNull } from 'sequelize-typescript/dist/model/column/column-options/allow-null';
+import { Unique } from 'sequelize-typescript/dist/model/column/column-options/unique';
 
 export const POSTGRESQL_USERS_TABLE_NAME = 'Users';
 
@@ -12,58 +16,44 @@ export enum PostgreSQLUsersTableColumn {
     isDeleted = 'isDeleted'
 }
 
-const SEQUELIZE_USERS_MODEL = {
-    [PostgreSQLUsersTableColumn.id]: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-    },
-    [PostgreSQLUsersTableColumn.userId]: {
-        type: DataTypes.UUID,
-        unique: true,
-        allowNull: false,
-    },
-    [PostgreSQLUsersTableColumn.login]: {
-        type: DataTypes.STRING,
-        unique: true,
-        allowNull: false,
-    },
-    [PostgreSQLUsersTableColumn.password]: {
-        type: DataTypes.STRING(80),
-        allowNull: false,
-    },
-    [PostgreSQLUsersTableColumn.age]: {
-        type: DataTypes.SMALLINT,
-        allowNull: false,
-    },
-    [PostgreSQLUsersTableColumn.isDeleted]: {
-        type: DataTypes.BOOLEAN,
-    },
-};
-
-const SEQUELIZE_USERS_OPTIONS = {
+@Table({
+    modelName: POSTGRESQL_USERS_TABLE_NAME,
     timestamps: false,
-};
+})
+export class SequelizeUserModel extends Model {
+    @Unique(true)
+    @AllowNull(false)
+    @Column(DataTypes.UUID)
+    public [PostgreSQLUsersTableColumn.userId]: string;
+
+    @Unique(true)
+    @AllowNull(false)
+    @Column(DataTypes.STRING)
+    public [PostgreSQLUsersTableColumn.login]: string;
+
+    @AllowNull(false)
+    @Column(DataTypes.STRING(80))
+    public [PostgreSQLUsersTableColumn.password]: string;
+
+    @AllowNull(false)
+    @Column(DataTypes.SMALLINT)
+    public [PostgreSQLUsersTableColumn.age]: number;
+
+    @Column(DataTypes.BOOLEAN)
+    public [PostgreSQLUsersTableColumn.isDeleted]: boolean;
+}
 
 async function initUsersPostgreSQLSequelizeModel(
     sequelize: Sequelize,
-): Promise<ModelCtor<Model>> {
-    const UsersModel = sequelize.define(
-        POSTGRESQL_USERS_TABLE_NAME,
-        SEQUELIZE_USERS_MODEL,
-        SEQUELIZE_USERS_OPTIONS,
-    );
-
-    await UsersModel.sync();
-    return UsersModel;
+): Promise<void> {
+    sequelize.addModels([SequelizeUserModel]);
+    await SequelizeUserModel.sync();
 }
 
-async function checkAndAddPredefinedData(
-    usersDatabaseInstance: ModelCtor<Model>,
-): Promise<void> {
-    const isTableEmpty = !await usersDatabaseInstance.findOne();
+async function checkAndAddPredefinedData(): Promise<void> {
+    const isTableEmpty = !await SequelizeUserModel.findOne();
     if (isTableEmpty) {
-        await usersDatabaseInstance.bulkCreate([
+        await SequelizeUserModel.bulkCreate([
             {
                 [PostgreSQLUsersTableColumn.userId]: randomUUID(),
                 [PostgreSQLUsersTableColumn.login]: 'login_example1@mail.com',
@@ -95,6 +85,6 @@ async function checkAndAddPredefinedData(
 export async function initUsersPostgreSQLModelAndAddPredefinedData(
     sequelize: Sequelize,
 ): Promise<void> {
-    const usersDatabaseInstance = await initUsersPostgreSQLSequelizeModel(sequelize);
-    await checkAndAddPredefinedData(usersDatabaseInstance);
+    await initUsersPostgreSQLSequelizeModel(sequelize);
+    await checkAndAddPredefinedData();
 }

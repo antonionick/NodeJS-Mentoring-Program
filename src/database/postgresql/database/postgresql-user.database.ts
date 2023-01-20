@@ -1,9 +1,9 @@
 import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
 import type { IUserDatabaseModel, IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
 import type { PostgreSQLDatabaseErrorsConverter } from '@database/postgresql/errors-converter/postgresql-database-errors-converter';
-import { PostgreSQLUsersTableColumn } from '@database/postgresql/models/postgresql-user.models';
+import { PostgreSQLUsersTableColumn, SequelizeUserModel } from '@database/postgresql/models/postgresql-user.models';
 import { randomUUID } from 'crypto';
-import { BaseError, Model, ModelCtor, Op } from 'sequelize';
+import { BaseError, Model, Op } from 'sequelize';
 
 const IS_DELETED_COMMON_QUERY = {
     [Op.not]: true,
@@ -11,7 +11,6 @@ const IS_DELETED_COMMON_QUERY = {
 
 export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
     constructor(
-        private readonly userDatabaseInstance: ModelCtor<Model>,
         private readonly errorsConverter: PostgreSQLDatabaseErrorsConverter,
     ) { }
 
@@ -19,7 +18,7 @@ export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
         userId: string,
     ): Promise<IUserDatabaseModel> {
         try {
-            const userSequelizeModel = await this.userDatabaseInstance.findOne({
+            const userSequelizeModel = await SequelizeUserModel.findOne({
                 where: {
                     [PostgreSQLUsersTableColumn.userId]: userId,
                     [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
@@ -58,11 +57,12 @@ export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
         limit: number,
     ): Promise<IUserDatabaseModel[]> {
         try {
-            const userSequelizeModel = await this.userDatabaseInstance.findAll({
+            const userSequelizeModel = await SequelizeUserModel.findAll({
                 where: {
                     [PostgreSQLUsersTableColumn.login]: {
                         [Op.substring]: loginSubstring,
                     },
+                    [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
                 },
                 order: [
                     [PostgreSQLUsersTableColumn.login, 'ASC'],
@@ -87,7 +87,7 @@ export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
     ): Promise<IUserDatabaseModel> {
         try {
             const userId = randomUUID();
-            const createdUserSequelizeModel = await this.userDatabaseInstance.create({
+            const createdUserSequelizeModel = await SequelizeUserModel.create({
                 [PostgreSQLUsersTableColumn.userId]: userId,
                 [PostgreSQLUsersTableColumn.login]: userData.login,
                 [PostgreSQLUsersTableColumn.password]: userData.password,
@@ -110,7 +110,7 @@ export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
         userData: IUserDataToUpdate,
     ): Promise<IUserDatabaseModel> {
         try {
-            await this.userDatabaseInstance.update(
+            await SequelizeUserModel.update(
                 {
                     [PostgreSQLUsersTableColumn.age]: userData.age,
                     [PostgreSQLUsersTableColumn.password]: userData.password,
@@ -137,7 +137,7 @@ export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
         id: string,
     ): Promise<boolean> {
         try {
-            const [affectedCount] = await this.userDatabaseInstance.update(
+            const [affectedCount] = await SequelizeUserModel.update(
                 {
                     [PostgreSQLUsersTableColumn.isDeleted]: true,
                 },
@@ -162,7 +162,7 @@ export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
         userId: string,
     ): Promise<boolean> {
         try {
-            const userSequelizeModel = await this.userDatabaseInstance.findOne({
+            const userSequelizeModel = await SequelizeUserModel.findOne({
                 where: {
                     [PostgreSQLUsersTableColumn.userId]: userId,
                     [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
@@ -182,7 +182,7 @@ export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
         login: string,
     ): Promise<boolean> {
         try {
-            const userSequelizeModel = await this.userDatabaseInstance.findOne({
+            const userSequelizeModel = await SequelizeUserModel.findOne({
                 where: {
                     [PostgreSQLUsersTableColumn.login]: login,
                     [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
