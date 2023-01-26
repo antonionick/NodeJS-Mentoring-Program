@@ -1,7 +1,7 @@
 import 'module-alias/register';
 import express from 'express';
 import type { Express } from 'express';
-import { getDotenvOptions } from '@core/utils/dotenv-utils';
+import { getDotenvOptions } from '@config/dotenv/dotenv-options';
 import { initRoutes } from '@routes/routes';
 import { PostgresqlDatabaseProvider, PostgresqlDatabaseProviderInitOptions } from '@database/postgresql/postgresql-database.provider';
 import { JoiValidatorProvider } from '@validators/joi/joi-validator.provider';

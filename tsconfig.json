@@ -11,7 +11,7 @@
         "moduleResolution": "node",
         "baseUrl": "./src",
         "paths": {
-            "@core/*": ["core/*"],
+            "@config/*": ["config/*"],
             "@common/*": ["common/*"],
             "@routes/*": ["routes/*"],
             "@database/*": ["database/*"],

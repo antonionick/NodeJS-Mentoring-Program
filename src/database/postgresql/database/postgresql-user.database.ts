@@ -1,8 +1,9 @@
 import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
 import type { IUserDatabaseModel, IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
-import { PostgreSQLUsersTableColumn } from '@database/postgresql/models/postgresql-user.models';
+import type { PostgreSQLDatabaseErrorsConverter } from '@database/postgresql/errors-converter/postgresql-database-errors-converter';
+import { PostgreSQLUsersTableColumn, SequelizeUserModel } from '@database/postgresql/models/postgresql-user.models';
 import { randomUUID } from 'crypto';
-import { Model, ModelCtor, Op } from 'sequelize';
+import { BaseError, Model, Op } from 'sequelize';
 
 const IS_DELETED_COMMON_QUERY = {
     [Op.not]: true,
@@ -10,22 +11,30 @@ const IS_DELETED_COMMON_QUERY = {
 
 export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
     constructor(
-        private readonly userDatabaseInstance: ModelCtor<Model>,
+        private readonly errorsConverter: PostgreSQLDatabaseErrorsConverter,
     ) { }
 
     public async getUserById(
         userId: string,
     ): Promise<IUserDatabaseModel> {
-        const userSequelizeModel = await this.userDatabaseInstance.findOne({
-            where: {
-                [PostgreSQLUsersTableColumn.userId]: userId,
-                [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
-            },
-        });
+        try {
+            const userSequelizeModel = await SequelizeUserModel.findOne({
+                where: {
+                    [PostgreSQLUsersTableColumn.userId]: userId,
+                    [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
+                },
+            });
 
-        return userSequelizeModel
-            ? this.convertSequelizeModelToDatabaseModel(userSequelizeModel)
-            : null!;
+            return userSequelizeModel
+                ? this.convertSequelizeModelToDatabaseModel(userSequelizeModel)
+                : null!;
+        } catch (error: unknown) {
+            if (error instanceof BaseError) {
+                const databaseError = this.errorsConverter.convertPostgreSQLError(error as any);
+                throw databaseError;
+            }
+            throw error;
+        }
     }
 
     private convertSequelizeModelToDatabaseModel(
@@ -47,96 +56,145 @@ export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
         loginSubstring: string,
         limit: number,
     ): Promise<IUserDatabaseModel[]> {
-        const userSequelizeModel = await this.userDatabaseInstance.findAll({
-            where: {
-                [PostgreSQLUsersTableColumn.login]: {
-                    [Op.substring]: loginSubstring,
+        try {
+            const userSequelizeModel = await SequelizeUserModel.findAll({
+                where: {
+                    [PostgreSQLUsersTableColumn.login]: {
+                        [Op.substring]: loginSubstring,
+                    },
+                    [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
                 },
-            },
-            order: [
-                [PostgreSQLUsersTableColumn.login, 'ASC'],
-            ],
-            limit,
-        });
+                order: [
+                    [PostgreSQLUsersTableColumn.login, 'ASC'],
+                ],
+                limit,
+            });
 
-        const usersDatabaseModels = userSequelizeModel
-            .map(this.convertSequelizeModelToDatabaseModel.bind(this));
-        return usersDatabaseModels;
+            const usersDatabaseModels = userSequelizeModel
+                .map(this.convertSequelizeModelToDatabaseModel.bind(this));
+            return usersDatabaseModels;
+        } catch (error: unknown) {
+            if (error instanceof BaseError) {
+                const databaseError = this.errorsConverter.convertPostgreSQLError(error as any);
+                throw databaseError;
+            }
+            throw error;
+        }
     }
 
     public async createUser(
         userData: IUserDataToCreate,
     ): Promise<IUserDatabaseModel> {
-        const userId = randomUUID();
-        const createdUserSequelizeModel = await this.userDatabaseInstance.create({
-            [PostgreSQLUsersTableColumn.userId]: userId,
-            [PostgreSQLUsersTableColumn.login]: userData.login,
-            [PostgreSQLUsersTableColumn.password]: userData.password,
-            [PostgreSQLUsersTableColumn.age]: userData.age,
-        });
+        try {
+            const userId = randomUUID();
+            const createdUserSequelizeModel = await SequelizeUserModel.create({
+                [PostgreSQLUsersTableColumn.userId]: userId,
+                [PostgreSQLUsersTableColumn.login]: userData.login,
+                [PostgreSQLUsersTableColumn.password]: userData.password,
+                [PostgreSQLUsersTableColumn.age]: userData.age,
+            });
 
-        const userDatabaseModel = this.convertSequelizeModelToDatabaseModel(createdUserSequelizeModel);
-        return userDatabaseModel;
+            const userDatabaseModel = this.convertSequelizeModelToDatabaseModel(createdUserSequelizeModel);
+            return userDatabaseModel;
+        } catch (error: unknown) {
+            if (error instanceof BaseError) {
+                const databaseError = this.errorsConverter.convertPostgreSQLError(error as any);
+                throw databaseError;
+            }
+            throw error;
+        }
     }
 
     public async updateUser(
         id: string,
         userData: IUserDataToUpdate,
     ): Promise<IUserDatabaseModel> {
-        await this.userDatabaseInstance.update(
-            {
-                [PostgreSQLUsersTableColumn.age]: userData.age,
-                [PostgreSQLUsersTableColumn.password]: userData.password,
-            },
-            {
-                where: {
-                    [PostgreSQLUsersTableColumn.userId]: id,
-                    [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
+        try {
+            await SequelizeUserModel.update(
+                {
+                    [PostgreSQLUsersTableColumn.age]: userData.age,
+                    [PostgreSQLUsersTableColumn.password]: userData.password,
                 },
-            },
-        );
+                {
+                    where: {
+                        [PostgreSQLUsersTableColumn.userId]: id,
+                        [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
+                    },
+                },
+            );
 
-        return await this.getUserById(id);
+            return await this.getUserById(id);
+        } catch (error: unknown) {
+            if (error instanceof BaseError) {
+                const databaseError = this.errorsConverter.convertPostgreSQLError(error);
+                throw databaseError;
+            }
+            throw error;
+        }
     }
 
     public async deleteUser(
         id: string,
     ): Promise<boolean> {
-        const [affectedCount] = await this.userDatabaseInstance.update(
-            {
-                [PostgreSQLUsersTableColumn.isDeleted]: true,
-            },
-            {
-                where: {
-                    [PostgreSQLUsersTableColumn.userId]: id,
-                    [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
+        try {
+            const [affectedCount] = await SequelizeUserModel.update(
+                {
+                    [PostgreSQLUsersTableColumn.isDeleted]: true,
                 },
-            },
-        );
-        return !!affectedCount;
+                {
+                    where: {
+                        [PostgreSQLUsersTableColumn.userId]: id,
+                        [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
+                    },
+                },
+            );
+            return !!affectedCount;
+        } catch (error: unknown) {
+            if (error instanceof BaseError) {
+                const databaseError = this.errorsConverter.convertPostgreSQLError(error);
+                throw databaseError;
+            }
+            throw error
+        }
     }
 
     public async checkUserExistenceById(
         userId: string,
     ): Promise<boolean> {
-        const userSequelizeModel = await this.userDatabaseInstance.findOne({
-            where: {
-                [PostgreSQLUsersTableColumn.userId]: userId,
-                [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
-            },
-        });
-        return !!userSequelizeModel;
+        try {
+            const userSequelizeModel = await SequelizeUserModel.findOne({
+                where: {
+                    [PostgreSQLUsersTableColumn.userId]: userId,
+                    [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
+                },
+            });
+            return !!userSequelizeModel;
+        } catch (error: unknown) {
+            if (error instanceof BaseError) {
+                const databaseError = this.errorsConverter.convertPostgreSQLError(error);
+                throw databaseError;
+            }
+            throw error
+        }
     }
 
     public async checkUserExistenceByLogin(
         login: string,
     ): Promise<boolean> {
-        const userSequelizeModel = await this.userDatabaseInstance.findOne({
-            where: {
-                [PostgreSQLUsersTableColumn.login]: login,
-                [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
-            },
-        });
-        return !!userSequelizeModel;
+        try {
+            const userSequelizeModel = await SequelizeUserModel.findOne({
+                where: {
+                    [PostgreSQLUsersTableColumn.login]: login,
+                    [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
+                },
+            });
+            return !!userSequelizeModel;
+        } catch (error) {
+            if (error instanceof BaseError) {
+                const databaseError = this.errorsConverter.convertPostgreSQLError(error);
+                throw databaseError;
+            }
+            throw error
+        }
     }
 }

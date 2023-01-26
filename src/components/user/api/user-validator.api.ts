@@ -1,5 +1,5 @@
-import type { ValidationResult } from '@common/validation/validation-result';
 import type { IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
+import type { ValidationResult } from '@validators/models/validation-result';
 
 export interface IUserValidatorAPI {
     validateUserDataToCreate(userDataToCreate: IUserDataToCreate): ValidationResult;

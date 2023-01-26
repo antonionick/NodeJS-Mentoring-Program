@@ -1,4 +1,4 @@
-import { ValidationResult } from '@common/validation/validation-result';
+import { ValidationResult } from '@validators/models/validation-result';
 import type { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes/build/cjs/status-codes';
 

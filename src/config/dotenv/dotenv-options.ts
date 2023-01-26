@@ -1,5 +1,5 @@
+import { DEFAULT_PORT } from '@config/app-options';
 import dotenv from 'dotenv';
-import { DEFAULT_PORT } from '@core/constants/app-options-constants';
 
 export interface IDotenvOptions {
     port: number;
