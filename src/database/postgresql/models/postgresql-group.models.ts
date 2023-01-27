@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto';
 import { DataTypes } from 'sequelize';
 import { AllowNull, Column, Model, Sequelize, Table, Unique } from 'sequelize-typescript';
 
-export const POSTGRESQL_GROUP_TABLE_NAME = 'Group';
+export const POSTGRESQL_GROUPS_TABLE_NAME = 'Groups';
 
 export enum PostgreSQLGroupTableColumn {
     id = 'id',
@@ -13,7 +13,7 @@ export enum PostgreSQLGroupTableColumn {
 }
 
 @Table({
-    tableName: POSTGRESQL_GROUP_TABLE_NAME,
+    tableName: POSTGRESQL_GROUPS_TABLE_NAME,
     timestamps: false,
 })
 export class SequelizeGroupModel extends Model {

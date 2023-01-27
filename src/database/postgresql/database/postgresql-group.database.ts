@@ -97,7 +97,7 @@ export class PostgreSQLGroupDatabase
         try {
             const affectedCount = await SequelizeGroupModel.destroy({
                 where: {
-                    [PostgreSQLGroupTableColumn.id]: id,
+                    [PostgreSQLGroupTableColumn.groupId]: id,
                 },
             });
             return !!affectedCount;
