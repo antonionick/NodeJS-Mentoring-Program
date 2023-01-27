@@ -1,5 +1,6 @@
 import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
 import type { IUserDatabaseModel, IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
+import { PostgreSQLBaseDatabase } from '@database/postgresql/database/postgresql-base.database';
 import type { PostgreSQLDatabaseErrorsConverter } from '@database/postgresql/errors-converter/postgresql-database-errors-converter';
 import { PostgreSQLUsersTableColumn, SequelizeUserModel } from '@database/postgresql/models/postgresql-user.models';
 import { randomUUID } from 'crypto';
@@ -9,10 +10,14 @@ const IS_DELETED_COMMON_QUERY = {
     [Op.not]: true,
 };
 
-export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
+export class PostgreSQLUserDatabase
+    extends PostgreSQLBaseDatabase
+    implements IUserDatabaseAPI {
     constructor(
-        private readonly errorsConverter: PostgreSQLDatabaseErrorsConverter,
-    ) { }
+        errorsConverter: PostgreSQLDatabaseErrorsConverter,
+    ) {
+        super(errorsConverter);
+    }
 
     public async getUserById(
         userId: string,
@@ -29,11 +34,7 @@ export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
                 ? this.convertSequelizeModelToDatabaseModel(userSequelizeModel)
                 : null!;
         } catch (error: unknown) {
-            if (error instanceof BaseError) {
-                const databaseError = this.errorsConverter.convertPostgreSQLError(error as any);
-                throw databaseError;
-            }
-            throw error;
+            this.handlerError(error);
         }
     }
 
@@ -57,7 +58,7 @@ export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
         limit: number,
     ): Promise<IUserDatabaseModel[]> {
         try {
-            const userSequelizeModel = await SequelizeUserModel.findAll({
+            const userSequelizeModels = await SequelizeUserModel.findAll({
                 where: {
                     [PostgreSQLUsersTableColumn.login]: {
                         [Op.substring]: loginSubstring,
@@ -70,15 +71,11 @@ export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
                 limit,
             });
 
-            const usersDatabaseModels = userSequelizeModel
+            const usersDatabaseModels = userSequelizeModels
                 .map(this.convertSequelizeModelToDatabaseModel.bind(this));
             return usersDatabaseModels;
         } catch (error: unknown) {
-            if (error instanceof BaseError) {
-                const databaseError = this.errorsConverter.convertPostgreSQLError(error as any);
-                throw databaseError;
-            }
-            throw error;
+            this.handlerError(error);
         }
     }
 
@@ -97,11 +94,7 @@ export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
             const userDatabaseModel = this.convertSequelizeModelToDatabaseModel(createdUserSequelizeModel);
             return userDatabaseModel;
         } catch (error: unknown) {
-            if (error instanceof BaseError) {
-                const databaseError = this.errorsConverter.convertPostgreSQLError(error as any);
-                throw databaseError;
-            }
-            throw error;
+            this.handlerError(error);
         }
     }
 
@@ -125,11 +118,7 @@ export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
 
             return await this.getUserById(id);
         } catch (error: unknown) {
-            if (error instanceof BaseError) {
-                const databaseError = this.errorsConverter.convertPostgreSQLError(error);
-                throw databaseError;
-            }
-            throw error;
+            this.handlerError(error);
         }
     }
 
@@ -150,11 +139,7 @@ export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
             );
             return !!affectedCount;
         } catch (error: unknown) {
-            if (error instanceof BaseError) {
-                const databaseError = this.errorsConverter.convertPostgreSQLError(error);
-                throw databaseError;
-            }
-            throw error
+            this.handlerError(error);
         }
     }
 
@@ -170,11 +155,7 @@ export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
             });
             return !!userSequelizeModel;
         } catch (error: unknown) {
-            if (error instanceof BaseError) {
-                const databaseError = this.errorsConverter.convertPostgreSQLError(error);
-                throw databaseError;
-            }
-            throw error
+            this.handlerError(error);
         }
     }
 
@@ -190,11 +171,7 @@ export class PostgreSQLUserDatabase implements IUserDatabaseAPI {
             });
             return !!userSequelizeModel;
         } catch (error) {
-            if (error instanceof BaseError) {
-                const databaseError = this.errorsConverter.convertPostgreSQLError(error);
-                throw databaseError;
-            }
-            throw error
+            this.handlerError(error);
         }
     }
 }
