@@ -1,4 +1,3 @@
-import { ValidationStatus } from '@validators/models/validation-status';
 import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
 import type { IUserValidatorAPI } from '@components/user/api/user-validator.api';
 import { IUserDataToCreate, IUserDatabaseModel, User, IUserDataToUpdate } from '@components/user/user.models';
@@ -12,7 +11,7 @@ export class UserService {
     public async getUserById(id: string): Promise<User> {
         const userDatabaseModel = await this.database.getUserById(id);
         if (!userDatabaseModel) {
-            throw new Error(`User with id: ${id} is not exist`);
+            throw new Error(`User with id: ${id} does not exist`);
         }
 
         const user = this.convertDatabaseModelToUser(userDatabaseModel);
@@ -25,7 +24,7 @@ export class UserService {
     ): Promise<User[]> {
         const validationResult = this.validator
             .validateAutosuggestParams(loginSubstring, limit);
-        if (validationResult.status === ValidationStatus.Fail) {
+        if (validationResult.isValidationFail!()) {
             throw validationResult;
         }
 
@@ -42,7 +41,7 @@ export class UserService {
     ): Promise<User> {
         const validationResult = this.validator
             .validateUserDataToCreate(userData);
-        if (validationResult.status === ValidationStatus.Fail) {
+        if (validationResult.isValidationFail!()) {
             throw validationResult;
         }
 
@@ -71,13 +70,13 @@ export class UserService {
     ): Promise<User> {
         const validationResult = this.validator
             .validateUserDataToUpdate(userData);
-        if (validationResult.status === ValidationStatus.Fail) {
+        if (validationResult.isValidationFail!()) {
             throw validationResult;
         }
 
         const isUserExist = await this.database.checkUserExistenceById(id);
         if (!isUserExist) {
-            throw new Error(`User with id: ${id} is not exist`);
+            throw new Error(`User with id: ${id} does not exist`);
         }
 
         const userDatabaseModel = await this.database.updateUser(id, userData);
@@ -88,7 +87,7 @@ export class UserService {
     public async deleteUser(id: string): Promise<boolean> {
         const isUserExist = await this.database.checkUserExistenceById(id);
         if (!isUserExist) {
-            throw new Error(`User with id: ${id} is not exist`);
+            throw new Error(`User with id: ${id} does not exist`);
         }
 
         const isDeleted = await this.database.deleteUser(id);

@@ -1,7 +1,6 @@
 import type { IGroupDatabaseAPI } from '@components/group/api/group-database.api';
 import type { IGroupValidatorAPI } from '@components/group/api/group-validator.api';
 import { Group, IGroupDatabaseModel, IGroupDataToCreate, IGroupDataToUpdate } from '@components/group/group.models';
-import { ValidationStatus } from '@validators/models/validation-status';
 
 export class GroupService {
     constructor(
@@ -36,7 +35,7 @@ export class GroupService {
 
     public async createGroup(dataToCreate: IGroupDataToCreate): Promise<Group> {
         const validationResult = this.validator.validateGroupDataToCreate(dataToCreate);
-        if (validationResult.status === ValidationStatus.Fail) {
+        if (validationResult.isValidationFail!()) {
             throw validationResult;
         }
 
@@ -55,7 +54,7 @@ export class GroupService {
         dataToUpdate: IGroupDataToUpdate,
     ): Promise<Group> {
         const validationResult = this.validator.validateGroupDataToUpdate(dataToUpdate);
-        if (validationResult.status === ValidationStatus.Fail) {
+        if (validationResult.isValidationFail!()) {
             throw validationResult;
         }
 
