@@ -1,12 +1,11 @@
 import { GroupPermission } from '@components/group/group.models';
-import { randomUUID } from 'crypto';
-import { DataTypes } from 'sequelize';
-import { AllowNull, Column, Model, Sequelize, Table, Unique } from 'sequelize-typescript';
+import { SequelizeUserGroupModel } from '@database/postgresql/models/postgresql-user-group.models';
+import { SequelizeUserModel } from '@database/postgresql/models/postgresql-user.models';
+import { AllowNull, DataType, BelongsToMany, Column, Model, PrimaryKey, Table, Unique } from 'sequelize-typescript';
 
 export const POSTGRESQL_GROUPS_TABLE_NAME = 'Groups';
 
 export enum PostgreSQLGroupTableColumn {
-    id = 'id',
     groupId = 'groupId',
     name = 'name',
     permissions = 'permissions',
@@ -19,32 +18,31 @@ export enum PostgreSQLGroupTableColumn {
 export class SequelizeGroupModel extends Model {
     @Unique(true)
     @AllowNull(false)
-    @Column(DataTypes.UUID)
+    @PrimaryKey
+    @Column({
+        type: DataType.UUID,
+        defaultValue: DataType.UUIDV4,
+    })
     public [PostgreSQLGroupTableColumn.groupId]: string;
 
     @Unique(true)
     @AllowNull(false)
-    @Column(DataTypes.STRING)
+    @Column(DataType.STRING)
     public [PostgreSQLGroupTableColumn.name]: string;
 
     @AllowNull(false)
-    @Column(DataTypes.ARRAY(DataTypes.STRING))
+    @Column(DataType.ARRAY(DataType.STRING))
     public [PostgreSQLGroupTableColumn.permissions]: string[];
+
+    @BelongsToMany(() => SequelizeUserModel, () => SequelizeUserGroupModel)
+    public users: SequelizeUserModel[];
 }
 
-async function initGroupPostgreSQLModel(
-    sequelize: Sequelize,
-): Promise<void> {
-    sequelize.addModels([SequelizeGroupModel]);
-    await SequelizeGroupModel.sync();
-}
-
-async function checkAndAddPredefinedData(): Promise<void> {
+export async function checkGroupEmptyAndAddPredefinedData(): Promise<void> {
     const isTableEmpty = !await SequelizeGroupModel.findOne();
     if (isTableEmpty) {
         await SequelizeGroupModel.bulkCreate([
             {
-                [PostgreSQLGroupTableColumn.groupId]: randomUUID(),
                 [PostgreSQLGroupTableColumn.name]: 'group name 1',
                 [PostgreSQLGroupTableColumn.permissions]: [
                     GroupPermission.Read,
@@ -52,7 +50,6 @@ async function checkAndAddPredefinedData(): Promise<void> {
                 ],
             },
             {
-                [PostgreSQLGroupTableColumn.groupId]: randomUUID(),
                 [PostgreSQLGroupTableColumn.name]: 'group name 2',
                 [PostgreSQLGroupTableColumn.permissions]: [
                     GroupPermission.Share,
@@ -60,17 +57,9 @@ async function checkAndAddPredefinedData(): Promise<void> {
                 ],
             },
             {
-                [PostgreSQLGroupTableColumn.groupId]: randomUUID(),
                 [PostgreSQLGroupTableColumn.name]: 'group name 3',
                 [PostgreSQLGroupTableColumn.permissions]: [GroupPermission.Delete],
             },
         ]);
     }
-}
-
-export async function initGroupPostgreSQLModelAndAddPredefinedData(
-    sequelize: Sequelize,
-): Promise<void> {
-    await initGroupPostgreSQLModel(sequelize);
-    await checkAndAddPredefinedData();
 }

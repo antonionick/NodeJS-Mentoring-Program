@@ -4,7 +4,7 @@ import { PostgreSQLBaseDatabase } from '@database/postgresql/database/postgresql
 import type { PostgreSQLDatabaseErrorsConverter } from '@database/postgresql/errors-converter/postgresql-database-errors-converter';
 import { PostgreSQLUsersTableColumn, SequelizeUserModel } from '@database/postgresql/models/postgresql-user.models';
 import { randomUUID } from 'crypto';
-import { BaseError, Model, Op } from 'sequelize';
+import { Model, Op } from 'sequelize';
 
 const IS_DELETED_COMMON_QUERY = {
     [Op.not]: true,
