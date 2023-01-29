@@ -17,5 +17,7 @@ export function getUserRoutes(
     userRouter.put('/:id', userController.updateUser.bind(userController));
     userRouter.delete('/:id', userController.deleteUser.bind(userController));
 
+    userRouter.post('/addUsersToGroup', userController.addUsersToGroup.bind(userController));
+
     return userRouter;
 }

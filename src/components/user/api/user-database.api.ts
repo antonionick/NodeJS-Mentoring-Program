@@ -8,6 +8,10 @@ export interface IUserDatabaseAPI {
     updateUser(id: string, userData: IUserDataToUpdate): Promise<IUserDatabaseModel>;
     deleteUser(id: string): Promise<boolean>;
 
+    addUsersToGroup(groupId: string, usersIds: string[]): Promise<boolean>;
+
     checkUserExistenceById(id: string): Promise<boolean>;
     checkUserExistenceByLogin(id: string): Promise<boolean>;
+
+    checkUserBelongsToGroup(userId: string, groupId: string): Promise<boolean>;
 }

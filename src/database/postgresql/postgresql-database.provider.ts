@@ -57,7 +57,8 @@ export class PostgresqlDatabaseProvider implements IDatabaseProvider {
     public getUserDatabase(): IUserDatabaseAPI {
         if (!this.userDatabaseInstance) {
             const errorsConverter = this.getErrorsConverter();
-            this.userDatabaseInstance = new PostgreSQLUserDatabase(errorsConverter);
+            this.userDatabaseInstance = new PostgreSQLUserDatabase(
+                errorsConverter, this.databaseInstance);
         }
         return this.userDatabaseInstance;
     }

@@ -2,9 +2,11 @@ import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
 import type { IUserDatabaseModel, IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
 import { PostgreSQLBaseDatabase } from '@database/postgresql/database/postgresql-base.database';
 import type { PostgreSQLDatabaseErrorsConverter } from '@database/postgresql/errors-converter/postgresql-database-errors-converter';
+import { PostgreSQLUserGroupTableColumn, SequelizeUserGroupModel } from '@database/postgresql/models/postgresql-user-group.models';
 import { PostgreSQLUsersTableColumn, SequelizeUserModel } from '@database/postgresql/models/postgresql-user.models';
 import { randomUUID } from 'crypto';
 import { Model, Op } from 'sequelize';
+import type { Sequelize } from 'sequelize-typescript';
 
 const IS_DELETED_COMMON_QUERY = {
     [Op.not]: true,
@@ -15,6 +17,7 @@ export class PostgreSQLUserDatabase
     implements IUserDatabaseAPI {
     constructor(
         errorsConverter: PostgreSQLDatabaseErrorsConverter,
+        private readonly sequelize: Sequelize,
     ) {
         super(errorsConverter);
     }
@@ -143,6 +146,26 @@ export class PostgreSQLUserDatabase
         }
     }
 
+    public async addUsersToGroup(groupId: string, usersIds: string[]): Promise<boolean> {
+        try {
+            const areUsersAdded = this.sequelize.transaction(async transaction => {
+                for (const userId of usersIds) {
+                    await SequelizeUserGroupModel.create(
+                        {
+                            [PostgreSQLUserGroupTableColumn.userId]: userId,
+                            [PostgreSQLUserGroupTableColumn.groupId]: groupId,
+                        },
+                        { transaction },
+                    );
+                }
+                return true;
+            });
+            return areUsersAdded;
+        } catch (error: unknown) {
+            this.handlerError(error);
+        }
+    }
+
     public async checkUserExistenceById(
         userId: string,
     ): Promise<boolean> {
@@ -171,6 +194,23 @@ export class PostgreSQLUserDatabase
             });
             return !!userSequelizeModel;
         } catch (error) {
+            this.handlerError(error);
+        }
+    }
+
+    public async checkUserBelongsToGroup(
+        userId: string,
+        groupId: string,
+    ): Promise<boolean> {
+        try {
+            const userSequelizeModel = await SequelizeUserGroupModel.findOne({
+                where: {
+                    [PostgreSQLUserGroupTableColumn.userId]: userId,
+                    [PostgreSQLUserGroupTableColumn.groupId]: groupId,
+                },
+            });
+            return !!userSequelizeModel;
+        } catch (error: unknown) {
             this.handlerError(error);
         }
     }

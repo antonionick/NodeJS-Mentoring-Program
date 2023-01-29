@@ -26,8 +26,8 @@ export class GroupController {
             response
                 .status(StatusCodes.OK)
                 .json(group);
-        } catch (err) {
-            next(err);
+        } catch (error) {
+            next(error);
         }
     }
 
@@ -43,8 +43,8 @@ export class GroupController {
             response
                 .status(StatusCodes.OK)
                 .json(groups);
-        } catch (err) {
-            next(err);
+        } catch (error) {
+            next(error);
         }
     }
 
@@ -61,8 +61,8 @@ export class GroupController {
             response
                 .status(StatusCodes.OK)
                 .json(createdGroup);
-        } catch (err) {
-            next(err);
+        } catch (error) {
+            next(error);
         }
     }
 
@@ -87,8 +87,8 @@ export class GroupController {
             response
                 .status(StatusCodes.OK)
                 .json(updatedGroup);
-        } catch (err) {
-            next(err);
+        } catch (error) {
+            next(error);
         }
     }
 
@@ -111,8 +111,8 @@ export class GroupController {
             response
                 .status(StatusCodes.OK)
                 .send(isDeleted);
-        } catch (err) {
-            next(err);
+        } catch (error) {
+            next(error);
         }
     }
 

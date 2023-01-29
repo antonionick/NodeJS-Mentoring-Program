@@ -5,4 +5,5 @@ export interface IUserValidatorAPI {
     validateUserDataToCreate(userDataToCreate: IUserDataToCreate): ValidationResult;
     validateUserDataToUpdate(userDataToUpdate: IUserDataToUpdate): ValidationResult;
     validateAutosuggestParams(loginSubstring: string, limit: number): ValidationResult;
+    validateUsersIds(usersIds: string[]): ValidationResult;
 }

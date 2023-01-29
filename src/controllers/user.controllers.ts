@@ -27,8 +27,8 @@ export class UserController {
                 .status(StatusCodes.OK)
                 .json(user);
             next();
-        } catch (err) {
-            next(err);
+        } catch (error) {
+            next(error);
         }
     }
 
@@ -48,8 +48,8 @@ export class UserController {
                 .status(StatusCodes.OK)
                 .json(autosuggestUsers);
             next();
-        } catch (err) {
-            next(err);
+        } catch (error) {
+            next(error);
         }
     }
 
@@ -67,8 +67,8 @@ export class UserController {
                 .status(StatusCodes.OK)
                 .json(user);
             next();
-        } catch (err) {
-            next(err);
+        } catch (error) {
+            next(error);
         }
     }
 
@@ -95,8 +95,8 @@ export class UserController {
                 .status(StatusCodes.OK)
                 .json(user);
             next();
-        } catch (err) {
-            next(err);
+        } catch (error) {
+            next(error);
         }
     }
 
@@ -121,16 +121,42 @@ export class UserController {
                 .status(StatusCodes.OK)
                 .send(isDeleted);
             next();
-        } catch (err) {
-            next(err);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    public async addUsersToGroup(
+        request: Request,
+        response: Response,
+        next: NextFunction,
+    ): Promise<void> {
+        const userService = this.getUserService();
+        const { usersIds: sourceUsersIds, groupId } = request.query;
+
+        try {
+            let usersIds = sourceUsersIds;
+            if (typeof sourceUsersIds === 'string') {
+                usersIds = sourceUsersIds
+                    .split(',')
+                    .map(userId => userId.trim());
+            }
+
+            const areUsersAdded = await userService.addUsersToGroup(groupId as string, usersIds as string[]);
+            response
+                .status(StatusCodes.OK)
+                .send(areUsersAdded);
+        } catch (error) {
+            next(error);
         }
     }
 
     private getUserService(): UserService {
         if (!this.userService) {
             const userDatabase = this.databaseProvider.getUserDatabase();
+            const groupDatabase = this.databaseProvider.getGroupDatabase();
             const userValidator = this.validatorProvider.getUserValidator();
-            const userService = new UserService(userDatabase, userValidator);
+            const userService = new UserService(userDatabase, groupDatabase, userValidator);
             this.userService = userService;
         }
         return this.userService;
