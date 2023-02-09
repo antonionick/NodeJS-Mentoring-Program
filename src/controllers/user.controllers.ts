@@ -32,7 +32,6 @@ export class UserController {
             response
                 .status(StatusCodes.OK)
                 .json(user);
-            next();
         } catch (error) {
             next(error);
         }
@@ -58,7 +57,6 @@ export class UserController {
             response
                 .status(StatusCodes.OK)
                 .json(autosuggestUsers);
-            next();
         } catch (error) {
             next(error);
         }
@@ -83,7 +81,6 @@ export class UserController {
             response
                 .status(StatusCodes.OK)
                 .json(user);
-            next();
         } catch (error) {
             next(error);
         }
@@ -117,7 +114,6 @@ export class UserController {
             response
                 .status(StatusCodes.OK)
                 .json(user);
-            next();
         } catch (error) {
             next(error);
         }
@@ -149,7 +145,6 @@ export class UserController {
             response
                 .status(StatusCodes.OK)
                 .send(isDeleted);
-            next();
         } catch (error) {
             next(error);
         }

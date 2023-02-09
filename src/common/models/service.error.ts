@@ -1,6 +1,5 @@
 import { Initializable } from '@common/utils/initializable';
 
-// TODO: Add handler
 export class ServiceError extends Initializable<ServiceError> {
     public message: string;
 

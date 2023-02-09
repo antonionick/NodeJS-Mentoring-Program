@@ -1,18 +1,17 @@
-import { DatabaseError } from '@database/models/database-error';
+import { ServiceError } from '@common/models/service.error';
 import type { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-export function databaseErrorHandler(
+export function serviceErrorHandler(
     error: unknown,
     request: Request,
     response: Response,
     next: NextFunction,
 ): void {
-    if (error instanceof DatabaseError) {
-        const { errorItems } = error;
+    if (error instanceof ServiceError) {
         response
             .status(StatusCodes.BAD_REQUEST)
-            .json(errorItems);
+            .json(error.message);
     }
 
     next(error);
