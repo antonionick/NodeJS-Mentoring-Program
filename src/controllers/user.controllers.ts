@@ -22,7 +22,13 @@ export class UserController {
         const id = request.params.id;
 
         try {
-            const user = await userService.getUserById(id);
+            const userServiceResult = await userService.getUserById(id);
+            if (userServiceResult.hasError!()) {
+                next(userServiceResult.error);
+                return;
+            }
+
+            const user = userServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(user);
@@ -41,9 +47,14 @@ export class UserController {
         const { limit, loginSubstring } = request.query;
 
         try {
-            const autosuggestUsers = await userService
+            const userServiceResult = await userService
                 .getAutosuggestUsers(loginSubstring as string, Number(limit));
+            if (userServiceResult.hasError!()) {
+                next(userServiceResult.error);
+                return;
+            }
 
+            const autosuggestUsers = userServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(autosuggestUsers);
@@ -62,7 +73,13 @@ export class UserController {
         const userDataToCreate = this.getUserDataToCreate(request);
 
         try {
-            const user = await userService.createUser(userDataToCreate);
+            const userServiceResult = await userService.createUser(userDataToCreate);
+            if (userServiceResult.hasError!()) {
+                next(userServiceResult.error);
+                return;
+            }
+
+            const user = userServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(user);
@@ -90,7 +107,13 @@ export class UserController {
         const userIdToUpdate = request.params.id;
 
         try {
-            const user = await userService.updateUser(userIdToUpdate, userDataToUpdate);
+            const userServiceResult = await userService.updateUser(userIdToUpdate, userDataToUpdate);
+            if (userServiceResult.hasError!()) {
+                next(userServiceResult.error);
+                return;
+            }
+
+            const user = userServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(user);
@@ -116,7 +139,13 @@ export class UserController {
         const userIdToDelete = request.params.id;
 
         try {
-            const isDeleted = await userService.deleteUser(userIdToDelete);
+            const userServiceResult = await userService.deleteUser(userIdToDelete);
+            if (userServiceResult.hasError!()) {
+                next(userServiceResult.error);
+                return;
+            }
+
+            const isDeleted = userServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .send(isDeleted);
@@ -142,7 +171,14 @@ export class UserController {
                     .map(userId => userId.trim());
             }
 
-            const areUsersAdded = await userService.addUsersToGroup(groupId as string, usersIds as string[]);
+            const userServiceResult = await userService
+                .addUsersToGroup(groupId as string, usersIds as string[]);
+            if (userServiceResult.hasError!()) {
+                next(userServiceResult.error);
+                return;
+            }
+
+            const areUsersAdded = userServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .send(areUsersAdded);

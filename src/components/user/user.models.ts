@@ -25,3 +25,18 @@ export class User extends Initializable<User> {
         this.initialize!(init);
     }
 }
+
+export class UserServiceResult<T = unknown> extends Initializable<UserServiceResult> {
+    public data?: T;
+    public error?: unknown;
+
+    constructor(init?: UserServiceResult) {
+        super();
+
+        this.initialize!(init);
+    }
+
+    public hasError?(): boolean {
+        return !!this.error;
+    }
+}

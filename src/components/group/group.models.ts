@@ -33,3 +33,18 @@ export class Group extends Initializable<Group> {
         this.initialize!(init);
     }
 }
+
+export class GroupServiceResult<T = unknown> extends Initializable<GroupServiceResult> {
+    public data?: T;
+    public error?: unknown;
+
+    constructor(init?: GroupServiceResult) {
+        super();
+
+        this.initialize!(init);
+    }
+
+    public hasError?(): boolean {
+        return !!this.error;
+    }
+}

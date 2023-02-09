@@ -22,7 +22,13 @@ export class GroupController {
         const id = request.params.id;
 
         try {
-            const group = await groupService.getGroupById(id);
+            const groupServiceResult = await groupService.getGroupById(id);
+            if (groupServiceResult.hasError!()) {
+                next(groupServiceResult.error);
+                return;
+            }
+
+            const group = groupServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(group);
@@ -39,7 +45,13 @@ export class GroupController {
         const groupService = this.getGroupService();
 
         try {
-            const groups = await groupService.getAllGroups();
+            const groupServiceResult = await groupService.getAllGroups();
+            if (groupServiceResult.hasError!()) {
+                next(groupServiceResult.error);
+                return;
+            }
+
+            const groups = groupServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(groups);
@@ -57,7 +69,13 @@ export class GroupController {
         const groupDataToCreate = this.getGroupDataToCreate(request);
 
         try {
-            const createdGroup = await groupService.createGroup(groupDataToCreate);
+            const groupServiceResult = await groupService.createGroup(groupDataToCreate);
+            if (groupServiceResult.hasError!()) {
+                next(groupServiceResult.error);
+                return;
+            }
+
+            const createdGroup = groupServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(createdGroup);
@@ -83,7 +101,13 @@ export class GroupController {
         const groupIdToUpdate = request.params.id;
 
         try {
-            const updatedGroup = await groupService.updateGroup(groupIdToUpdate, groupDataToUpdate);
+            const groupServiceResult = await groupService.updateGroup(groupIdToUpdate, groupDataToUpdate);
+            if (groupServiceResult.hasError!()) {
+                next(groupServiceResult.error);
+                return;
+            }
+
+            const updatedGroup = groupServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(updatedGroup);
@@ -107,7 +131,13 @@ export class GroupController {
         const groupIdToDelete = request.params.id;
 
         try {
-            const isDeleted = await groupService.deleteGroup(groupIdToDelete);
+            const groupServiceResult = await groupService.deleteGroup(groupIdToDelete);
+            if (groupServiceResult.hasError!()) {
+                next(groupServiceResult.error);
+                return;
+            }
+
+            const isDeleted = groupServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .send(isDeleted);

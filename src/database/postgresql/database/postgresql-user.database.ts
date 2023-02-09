@@ -1,5 +1,6 @@
 import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
 import type { IUserDatabaseModel, IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
+import { DatabaseResult } from '@database/models/database-result';
 import { PostgreSQLBaseDatabase } from '@database/postgresql/database/postgresql-base.database';
 import type { PostgreSQLDatabaseErrorsConverter } from '@database/postgresql/errors-converter/postgresql-database-errors-converter';
 import { PostgreSQLUserGroupTableColumn, SequelizeUserGroupModel } from '@database/postgresql/models/postgresql-user-group.models';
@@ -24,7 +25,7 @@ export class PostgreSQLUserDatabase
 
     public async getUserById(
         userId: string,
-    ): Promise<IUserDatabaseModel> {
+    ): Promise<DatabaseResult<IUserDatabaseModel>> {
         try {
             const userSequelizeModel = await SequelizeUserModel.findOne({
                 where: {
@@ -33,11 +34,12 @@ export class PostgreSQLUserDatabase
                 },
             });
 
-            return userSequelizeModel
+            const resultUserMorel = userSequelizeModel
                 ? this.convertSequelizeModelToDatabaseModel(userSequelizeModel)
                 : null!;
+            return new DatabaseResult({ data: resultUserMorel });
         } catch (error: unknown) {
-            this.handlerError(error);
+            return this.handlerError(error) as DatabaseResult<IUserDatabaseModel>;
         }
     }
 
@@ -59,7 +61,7 @@ export class PostgreSQLUserDatabase
     public async getAutoSuggestUsers(
         loginSubstring: string,
         limit: number,
-    ): Promise<IUserDatabaseModel[]> {
+    ): Promise<DatabaseResult<IUserDatabaseModel[]>> {
         try {
             const userSequelizeModels = await SequelizeUserModel.findAll({
                 where: {
@@ -76,15 +78,15 @@ export class PostgreSQLUserDatabase
 
             const usersDatabaseModels = userSequelizeModels
                 .map(this.convertSequelizeModelToDatabaseModel.bind(this));
-            return usersDatabaseModels;
+                return new DatabaseResult({ data: usersDatabaseModels });
         } catch (error: unknown) {
-            this.handlerError(error);
+            return this.handlerError(error) as DatabaseResult<IUserDatabaseModel[]>;
         }
     }
 
     public async createUser(
         userData: IUserDataToCreate,
-    ): Promise<IUserDatabaseModel> {
+    ): Promise<DatabaseResult<IUserDatabaseModel>> {
         try {
             const userId = randomUUID();
             const createdUserSequelizeModel = await SequelizeUserModel.create({
@@ -95,16 +97,16 @@ export class PostgreSQLUserDatabase
             });
 
             const userDatabaseModel = this.convertSequelizeModelToDatabaseModel(createdUserSequelizeModel);
-            return userDatabaseModel;
+            return new DatabaseResult({ data: userDatabaseModel });
         } catch (error: unknown) {
-            this.handlerError(error);
+            return this.handlerError(error) as DatabaseResult<IUserDatabaseModel>;
         }
     }
 
     public async updateUser(
         id: string,
         userData: IUserDataToUpdate,
-    ): Promise<IUserDatabaseModel> {
+    ): Promise<DatabaseResult<IUserDatabaseModel>> {
         try {
             await SequelizeUserModel.update(
                 {
@@ -119,15 +121,16 @@ export class PostgreSQLUserDatabase
                 },
             );
 
-            return await this.getUserById(id);
+            const userDatabaseModel = await this.getUserById(id);
+            return new DatabaseResult({ data: userDatabaseModel });
         } catch (error: unknown) {
-            this.handlerError(error);
+            return this.handlerError(error) as DatabaseResult<IUserDatabaseModel>;
         }
     }
 
     public async deleteUser(
         id: string,
-    ): Promise<boolean> {
+    ): Promise<DatabaseResult<boolean>> {
         try {
             const [affectedCount] = await SequelizeUserModel.update(
                 {
@@ -140,13 +143,17 @@ export class PostgreSQLUserDatabase
                     },
                 },
             );
-            return !!affectedCount;
+            const isUserDeleted = !!affectedCount;
+            return new DatabaseResult({ data: isUserDeleted });
         } catch (error: unknown) {
-            this.handlerError(error);
+            return this.handlerError(error) as DatabaseResult<boolean>;
         }
     }
 
-    public async addUsersToGroup(groupId: string, usersIds: string[]): Promise<boolean> {
+    public async addUsersToGroup(
+        groupId: string,
+        usersIds: string[],
+    ): Promise<DatabaseResult<boolean>> {
         try {
             const areUsersAdded = this.sequelize.transaction(async transaction => {
                 for (const userId of usersIds) {
@@ -160,15 +167,15 @@ export class PostgreSQLUserDatabase
                 }
                 return true;
             });
-            return areUsersAdded;
+            return new DatabaseResult({ data: areUsersAdded });
         } catch (error: unknown) {
-            this.handlerError(error);
+            return this.handlerError(error) as DatabaseResult<boolean>;
         }
     }
 
     public async checkUserExistenceById(
         userId: string,
-    ): Promise<boolean> {
+    ): Promise<DatabaseResult<boolean>> {
         try {
             const userSequelizeModel = await SequelizeUserModel.findOne({
                 where: {
@@ -176,15 +183,16 @@ export class PostgreSQLUserDatabase
                     [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
                 },
             });
-            return !!userSequelizeModel;
+            const doseUserExistById = !!userSequelizeModel;
+            return new DatabaseResult({ data: doseUserExistById });
         } catch (error: unknown) {
-            this.handlerError(error);
+            return this.handlerError(error) as DatabaseResult<boolean>;
         }
     }
 
     public async checkUserExistenceByLogin(
         login: string,
-    ): Promise<boolean> {
+    ): Promise<DatabaseResult<boolean>> {
         try {
             const userSequelizeModel = await SequelizeUserModel.findOne({
                 where: {
@@ -192,16 +200,17 @@ export class PostgreSQLUserDatabase
                     [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
                 },
             });
-            return !!userSequelizeModel;
+            const doesUserExistByLogin = !!userSequelizeModel;
+            return new DatabaseResult({ data: doesUserExistByLogin });
         } catch (error) {
-            this.handlerError(error);
+            return this.handlerError(error) as DatabaseResult<boolean>;
         }
     }
 
     public async checkUserBelongsToGroup(
         userId: string,
         groupId: string,
-    ): Promise<boolean> {
+    ): Promise<DatabaseResult<boolean>> {
         try {
             const userSequelizeModel = await SequelizeUserGroupModel.findOne({
                 where: {
@@ -209,9 +218,10 @@ export class PostgreSQLUserDatabase
                     [PostgreSQLUserGroupTableColumn.groupId]: groupId,
                 },
             });
-            return !!userSequelizeModel;
+            const doesUserBelongToGroup = !!userSequelizeModel;
+            return new DatabaseResult({ data: doesUserBelongToGroup });
         } catch (error: unknown) {
-            this.handlerError(error);
+            return this.handlerError(error) as DatabaseResult<boolean>;
         }
     }
 }

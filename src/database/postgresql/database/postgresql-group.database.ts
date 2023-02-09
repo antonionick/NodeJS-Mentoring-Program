@@ -1,5 +1,6 @@
 import type { IGroupDatabaseAPI } from '@components/group/api/group-database.api';
 import type { IGroupDatabaseModel, IGroupDataToCreate, IGroupDataToUpdate } from '@components/group/group.models';
+import { DatabaseResult } from '@database/models/database-result';
 import { PostgreSQLBaseDatabase } from '@database/postgresql/database/postgresql-base.database';
 import type { PostgreSQLDatabaseErrorsConverter } from '@database/postgresql/errors-converter/postgresql-database-errors-converter';
 import { PostgreSQLGroupTableColumn, SequelizeGroupModel } from '@database/postgresql/models/postgresql-group.models';
@@ -15,7 +16,9 @@ export class PostgreSQLGroupDatabase
         super(errorsConverter);
     }
 
-    public async getGroupById(id: string): Promise<IGroupDatabaseModel> {
+    public async getGroupById(
+        id: string,
+    ): Promise<DatabaseResult<IGroupDatabaseModel>> {
         try {
             const groupSequelizeModel = await SequelizeGroupModel.findOne({
                 where: {
@@ -23,11 +26,12 @@ export class PostgreSQLGroupDatabase
                 },
             });
 
-            return groupSequelizeModel
+            const resultGroupModel = groupSequelizeModel
                 ? this.convertSequelizeModelToDatabaseModel(groupSequelizeModel)
                 : null!;
+            return new DatabaseResult({ data: resultGroupModel });
         } catch (error: unknown) {
-            this.handlerError(error);
+            return this.handlerError(error) as DatabaseResult<IGroupDatabaseModel>;
         }
     }
 
@@ -44,18 +48,20 @@ export class PostgreSQLGroupDatabase
         return groupDatabaseModel;
     }
 
-    public async getAllGroups(): Promise<IGroupDatabaseModel[]> {
+    public async getAllGroups(): Promise<DatabaseResult<IGroupDatabaseModel[]>> {
         try {
             const groupSequelizeModels = await SequelizeGroupModel.findAll();
             const groupDatabaseModels = groupSequelizeModels
                 .map(this.convertSequelizeModelToDatabaseModel.bind(this));
-            return groupDatabaseModels;
+            return new DatabaseResult({ data: groupDatabaseModels });
         } catch (error: unknown) {
-            this.handlerError(error);
+            return this.handlerError(error) as DatabaseResult<IGroupDatabaseModel[]>;
         }
     }
 
-    public async createGroup(dataToCreate: IGroupDataToCreate): Promise<IGroupDatabaseModel> {
+    public async createGroup(
+        dataToCreate: IGroupDataToCreate,
+    ): Promise<DatabaseResult<IGroupDatabaseModel>> {
         try {
             const groupId = randomUUID();
             const createdGroupSequelizeMode = await SequelizeGroupModel.create({
@@ -65,16 +71,16 @@ export class PostgreSQLGroupDatabase
             });
 
             const groupDatabaseModel = this.convertSequelizeModelToDatabaseModel(createdGroupSequelizeMode);
-            return groupDatabaseModel;
+            return new DatabaseResult({ data: groupDatabaseModel });
         } catch (error: unknown) {
-            this.handlerError(error);
+            return this.handlerError(error) as DatabaseResult<IGroupDatabaseModel>;
         }
     }
 
     public async updateGroup(
         id: string,
         dataToUpdate: IGroupDataToUpdate,
-    ): Promise<IGroupDatabaseModel> {
+    ): Promise<DatabaseResult<IGroupDatabaseModel>> {
         try {
             await SequelizeGroupModel.update(
                 {
@@ -87,48 +93,58 @@ export class PostgreSQLGroupDatabase
                 },
             );
 
-            return await this.getGroupById(id);
+            const groupDatabaseModel = await this.getGroupById(id);
+            return new DatabaseResult({ data: groupDatabaseModel });
         } catch (error: unknown) {
-            this.handlerError(error);
+            return this.handlerError(error) as DatabaseResult<IGroupDatabaseModel>;
         }
     }
 
-    public async deleteGroup(id: string): Promise<boolean> {
+    public async deleteGroup(
+        id: string,
+    ): Promise<DatabaseResult<boolean>> {
         try {
             const affectedCount = await SequelizeGroupModel.destroy({
                 where: {
                     [PostgreSQLGroupTableColumn.groupId]: id,
                 },
             });
-            return !!affectedCount;
+            const isGroupDeleted = !!affectedCount;
+            return new DatabaseResult({ data: isGroupDeleted });
         } catch (error: unknown) {
-            this.handlerError(error);
+            return this.handlerError(error) as DatabaseResult<boolean>;
         }
     }
 
-    public async checkGroupExistenceById(id: string): Promise<boolean> {
+    public async checkGroupExistenceById(
+        id: string,
+    ): Promise<DatabaseResult<boolean>> {
         try {
             const groupSequelizeModel = await SequelizeGroupModel.findOne({
                 where: {
                     [PostgreSQLGroupTableColumn.groupId]: id,
                 },
             });
-            return !!groupSequelizeModel;
+            const doesGroupExistById = !!groupSequelizeModel;
+            return new DatabaseResult({ data: doesGroupExistById });
         } catch (error: unknown) {
-            this.handlerError(error);
+            return this.handlerError(error) as DatabaseResult<boolean>;
         }
     }
 
-    public async checkGroupExistenceByName(name: string): Promise<boolean> {
+    public async checkGroupExistenceByName(
+        name: string,
+    ): Promise<DatabaseResult<boolean>> {
         try {
             const groupSequelizeModel = await SequelizeGroupModel.findOne({
                 where: {
                     [PostgreSQLGroupTableColumn.name]: name,
                 },
             });
-            return !!groupSequelizeModel;
+            const doesGroupExistByName = !!groupSequelizeModel;
+            return new DatabaseResult({ data: doesGroupExistByName });
         } catch (error: unknown) {
-            this.handlerError(error);
+            return this.handlerError(error) as DatabaseResult<boolean>;
         }
     }
 }
