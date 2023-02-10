@@ -10,16 +10,20 @@ import { AppLogger } from '@logger/app-logger';
 
 class Main {
     public static async init(): Promise<void> {
-        const dotenvOptions = getDotenvOptions();
+        try {
+            const dotenvOptions = getDotenvOptions();
 
-        Main.initLogger();
+            Main.initLogger();
 
-        const validatorProvider = new JoiValidatorProvider();
-        const databaseProvider = await Main.initPostgreSQLProvider(dotenvOptions.databaseConnectionString);
+            const validatorProvider = new JoiValidatorProvider();
+            const databaseProvider = await Main.initPostgreSQLProvider(dotenvOptions.databaseConnectionString);
 
-        const app = Main.initApp(dotenvOptions.port);
+            const app = Main.initApp(dotenvOptions.port);
 
-        initRoutes(app, databaseProvider, validatorProvider);
+            initRoutes(app, databaseProvider, validatorProvider);
+        } catch (error) {
+            AppLogger.fatal(error as object);
+        }
     }
 
     private static initLogger(): void {

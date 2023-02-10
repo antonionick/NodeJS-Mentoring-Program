@@ -21,6 +21,7 @@ export function databaseErrorHandler(
             error: error.errorItems,
             logInfo: logInfo?.getInfoToLog!(),
         });
+        return;
     }
 
     next(errorHandlerData);

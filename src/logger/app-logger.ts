@@ -20,4 +20,8 @@ export class AppLogger {
     public static error(data: object): void {
         AppLogger.instance.logger.error(data);
     }
+
+    public static fatal(data: object): void{
+        AppLogger.instance.logger.fatal(data);
+    }
 }

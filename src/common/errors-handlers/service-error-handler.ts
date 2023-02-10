@@ -21,6 +21,7 @@ export function serviceErrorHandler(
             error: error.message,
             logInfo: logInfo?.getInfoToLog!(),
         });
+        return;
     }
 
     next(errorHandlerData);

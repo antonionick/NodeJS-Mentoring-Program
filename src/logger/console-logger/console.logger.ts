@@ -10,4 +10,8 @@ export class ConsoleLogger implements ILogger {
         const stringifiedData = JSON.stringify(data);
         console.error(stringifiedData);
     }
+
+    public fatal(data: object): void {
+        this.error(data);
+    }
 }

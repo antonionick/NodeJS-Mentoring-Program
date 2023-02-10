@@ -21,6 +21,7 @@ export function validatorErrorHandler(
             error: error.errors,
             logInfo: logInfo?.getInfoToLog!(),
         });
+        return;
     }
 
     next(errorHandlerData);
