@@ -1,4 +1,4 @@
-import type { ILogger } from 'logger/models/logger.models';
+import type { ILogger } from '@logger/models/logger.models';
 
 export class AppLogger {
     private static instance: AppLogger;

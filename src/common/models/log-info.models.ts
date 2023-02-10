@@ -12,4 +12,11 @@ export class LogInfo extends Initializable<LogInfo> {
 
         this.initialize!(init);
     }
+
+    public getInfoToLog?(): object {
+        return {
+            ...this,
+            executionTime: `${this.executionTime} ms`,
+        };
+    }
 }

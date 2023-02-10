@@ -5,8 +5,8 @@ import { getDotenvOptions } from '@config/dotenv/dotenv-options';
 import { initRoutes } from '@routes/routes';
 import { PostgresqlDatabaseProvider, PostgresqlDatabaseProviderInitOptions } from '@database/postgresql/postgresql-database.provider';
 import { JoiValidatorProvider } from '@validators/joi/joi-validator.provider';
-import { ConsoleLoggerProvider } from 'logger/console-logger/console-logger.provider';
-import { AppLogger } from 'logger/app-logger';
+import { ConsoleLoggerProvider } from '@logger/console-logger/console-logger.provider';
+import { AppLogger } from '@logger/app-logger';
 
 class Main {
     public static async init(): Promise<void> {

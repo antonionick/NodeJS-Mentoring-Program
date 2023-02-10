@@ -52,6 +52,7 @@
         "@database": "dist/database",
         "@components": "dist/components",
         "@controllers": "dist/controllers",
-        "@validators": "dist/validators"
+        "@validators": "dist/validators",
+        "@logger": "dist/logger"
     }
 }

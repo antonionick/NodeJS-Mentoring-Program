@@ -1,9 +1,11 @@
-import type { IGroupDataToCreate, IGroupDataToUpdate } from '@components/group/group.models';
+import type { GroupServiceResult, IGroupDataToCreate, IGroupDataToUpdate } from '@components/group/group.models';
 import { GroupService } from '@components/group/group.service';
 import type { IDatabaseProvider } from '@database/models/database-provider.models';
 import type { IValidatorProvider } from '@validators/models/validators-provider.models';
 import type { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { AppLogger } from '@logger/app-logger';
+import { ErrorHandlerData } from '@common/models/error-handler-data.models';
 
 export class GroupController {
     private groupService: GroupService;
@@ -24,7 +26,8 @@ export class GroupController {
         try {
             const groupServiceResult = await groupService.getGroupById(id);
             if (groupServiceResult.hasError!()) {
-                next(groupServiceResult.error);
+                const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
+                next(errorHandlerData);
                 return;
             }
 
@@ -32,9 +35,18 @@ export class GroupController {
             response
                 .status(StatusCodes.OK)
                 .json(group);
+
+            AppLogger.info(groupServiceResult.logInfo!.getInfoToLog!())
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
+    }
+
+    private getErrorHandlerData(groupServiceResult: GroupServiceResult): ErrorHandlerData {
+        return new ErrorHandlerData({
+            error: groupServiceResult.error,
+            logInfo: groupServiceResult.logInfo,
+        });
     }
 
     public async getAllGroups(
@@ -47,7 +59,8 @@ export class GroupController {
         try {
             const groupServiceResult = await groupService.getAllGroups();
             if (groupServiceResult.hasError!()) {
-                next(groupServiceResult.error);
+                const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
+                next(errorHandlerData);
                 return;
             }
 
@@ -55,8 +68,10 @@ export class GroupController {
             response
                 .status(StatusCodes.OK)
                 .json(groups);
+
+            AppLogger.info(groupServiceResult.logInfo!.getInfoToLog!())
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 
@@ -71,7 +86,8 @@ export class GroupController {
         try {
             const groupServiceResult = await groupService.createGroup(groupDataToCreate);
             if (groupServiceResult.hasError!()) {
-                next(groupServiceResult.error);
+                const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
+                next(errorHandlerData);
                 return;
             }
 
@@ -79,8 +95,10 @@ export class GroupController {
             response
                 .status(StatusCodes.OK)
                 .json(createdGroup);
+
+            AppLogger.info(groupServiceResult.logInfo!.getInfoToLog!())
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 
@@ -103,7 +121,8 @@ export class GroupController {
         try {
             const groupServiceResult = await groupService.updateGroup(groupIdToUpdate, groupDataToUpdate);
             if (groupServiceResult.hasError!()) {
-                next(groupServiceResult.error);
+                const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
+                next(errorHandlerData);
                 return;
             }
 
@@ -111,8 +130,10 @@ export class GroupController {
             response
                 .status(StatusCodes.OK)
                 .json(updatedGroup);
+
+            AppLogger.info(groupServiceResult.logInfo!.getInfoToLog!())
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 
@@ -133,7 +154,8 @@ export class GroupController {
         try {
             const groupServiceResult = await groupService.deleteGroup(groupIdToDelete);
             if (groupServiceResult.hasError!()) {
-                next(groupServiceResult.error);
+                const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
+                next(errorHandlerData);
                 return;
             }
 
@@ -141,8 +163,10 @@ export class GroupController {
             response
                 .status(StatusCodes.OK)
                 .send(isDeleted);
+
+            AppLogger.info(groupServiceResult.logInfo!.getInfoToLog!())
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 

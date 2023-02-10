@@ -1,9 +1,11 @@
-import type { IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
+import type { IUserDataToCreate, IUserDataToUpdate, UserServiceResult } from '@components/user/user.models';
 import { UserService } from '@components/user/user.service';
 import type { IDatabaseProvider } from '@database/models/database-provider.models';
 import type { IValidatorProvider } from '@validators/models/validators-provider.models';
 import type { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes/build/cjs/status-codes';
+import { AppLogger } from '@logger/app-logger';
+import { ErrorHandlerData } from '@common/models/error-handler-data.models';
 
 export class UserController {
     private userService: UserService;
@@ -24,7 +26,8 @@ export class UserController {
         try {
             const userServiceResult = await userService.getUserById(id);
             if (userServiceResult.hasError!()) {
-                next(userServiceResult.error);
+                const errorHandlerData = this.getErrorHandlerData(userServiceResult)
+                next(errorHandlerData);
                 return;
             }
 
@@ -32,9 +35,18 @@ export class UserController {
             response
                 .status(StatusCodes.OK)
                 .json(user);
+
+            AppLogger.info(userServiceResult.logInfo!.getInfoToLog!());
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
+    }
+
+    private getErrorHandlerData(userServiceResult: UserServiceResult): ErrorHandlerData {
+        return new ErrorHandlerData({
+            error: userServiceResult.error,
+            logInfo: userServiceResult.logInfo,
+        });
     }
 
     public async getAutosuggest(
@@ -49,7 +61,8 @@ export class UserController {
             const userServiceResult = await userService
                 .getAutosuggestUsers(loginSubstring as string, Number(limit));
             if (userServiceResult.hasError!()) {
-                next(userServiceResult.error);
+                const errorHandlerData = this.getErrorHandlerData(userServiceResult)
+                next(errorHandlerData);
                 return;
             }
 
@@ -57,8 +70,9 @@ export class UserController {
             response
                 .status(StatusCodes.OK)
                 .json(autosuggestUsers);
+            AppLogger.info(userServiceResult.logInfo!.getInfoToLog!());
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 
@@ -73,7 +87,8 @@ export class UserController {
         try {
             const userServiceResult = await userService.createUser(userDataToCreate);
             if (userServiceResult.hasError!()) {
-                next(userServiceResult.error);
+                const errorHandlerData = this.getErrorHandlerData(userServiceResult)
+                next(errorHandlerData);
                 return;
             }
 
@@ -81,8 +96,9 @@ export class UserController {
             response
                 .status(StatusCodes.OK)
                 .json(user);
+            AppLogger.info(userServiceResult.logInfo!.getInfoToLog!());
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 
@@ -106,7 +122,8 @@ export class UserController {
         try {
             const userServiceResult = await userService.updateUser(userIdToUpdate, userDataToUpdate);
             if (userServiceResult.hasError!()) {
-                next(userServiceResult.error);
+                const errorHandlerData = this.getErrorHandlerData(userServiceResult)
+                next(errorHandlerData);
                 return;
             }
 
@@ -114,8 +131,9 @@ export class UserController {
             response
                 .status(StatusCodes.OK)
                 .json(user);
+            AppLogger.info(userServiceResult.logInfo!.getInfoToLog!());
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 
@@ -137,7 +155,8 @@ export class UserController {
         try {
             const userServiceResult = await userService.deleteUser(userIdToDelete);
             if (userServiceResult.hasError!()) {
-                next(userServiceResult.error);
+                const errorHandlerData = this.getErrorHandlerData(userServiceResult)
+                next(errorHandlerData);
                 return;
             }
 
@@ -145,8 +164,10 @@ export class UserController {
             response
                 .status(StatusCodes.OK)
                 .send(isDeleted);
+
+            AppLogger.info(userServiceResult.logInfo!.getInfoToLog!());
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 
@@ -169,7 +190,8 @@ export class UserController {
             const userServiceResult = await userService
                 .addUsersToGroup(groupId as string, usersIds as string[]);
             if (userServiceResult.hasError!()) {
-                next(userServiceResult.error);
+                const errorHandlerData = this.getErrorHandlerData(userServiceResult)
+                next(errorHandlerData);
                 return;
             }
 
@@ -177,8 +199,10 @@ export class UserController {
             response
                 .status(StatusCodes.OK)
                 .send(areUsersAdded);
+
+            AppLogger.info(userServiceResult.logInfo!.getInfoToLog!());
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 
