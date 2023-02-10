@@ -2,6 +2,7 @@ import { ServiceError } from '@common/models/service.error';
 import type { IGroupDatabaseAPI } from '@components/group/api/group-database.api';
 import type { IUserDatabaseAPI } from '@components/user/api/user-database.api';
 import type { IUserValidatorAPI } from '@components/user/api/user-validator.api';
+import { logInfoData } from '@components/user/decorators/log-info-data.decorator';
 import { IUserDataToCreate, IUserDatabaseModel, User, IUserDataToUpdate, UserServiceResult } from '@components/user/user.models';
 
 export class UserService {
@@ -11,6 +12,7 @@ export class UserService {
         private readonly validator: IUserValidatorAPI,
     ) { }
 
+    @logInfoData(UserServiceResult)
     public async getUserById(id: string): Promise<UserServiceResult<User>> {
         try {
             const userDatabaseResult = await this.userDatabase.getUserById(id);
@@ -42,6 +44,7 @@ export class UserService {
         });
     }
 
+    @logInfoData(UserServiceResult)
     public async getAutosuggestUsers(
         loginSubstring: string,
         limit: number,
@@ -69,6 +72,7 @@ export class UserService {
         }
     }
 
+    @logInfoData(UserServiceResult)
     public async createUser(
         userData: IUserDataToCreate,
     ): Promise<UserServiceResult<User>> {
@@ -106,6 +110,7 @@ export class UserService {
         }
     }
 
+    @logInfoData(UserServiceResult)
     public async updateUser(
         id: string,
         userData: IUserDataToUpdate,
@@ -143,6 +148,7 @@ export class UserService {
         }
     }
 
+    @logInfoData(UserServiceResult)
     public async deleteUser(
         id: string,
     ): Promise<UserServiceResult<boolean>> {
@@ -171,6 +177,7 @@ export class UserService {
         }
     }
 
+    @logInfoData(UserServiceResult)
     public async addUsersToGroup(
         groupId: string,
         usersIds: string[],

@@ -2,6 +2,7 @@ import { ServiceError } from '@common/models/service.error';
 import type { IGroupDatabaseAPI } from '@components/group/api/group-database.api';
 import type { IGroupValidatorAPI } from '@components/group/api/group-validator.api';
 import { Group, IGroupDatabaseModel, IGroupDataToCreate, IGroupDataToUpdate } from '@components/group/group.models';
+import { logInfoData } from '@components/user/decorators/log-info-data.decorator';
 import { GroupServiceResult } from './group.models';
 
 export class GroupService {
@@ -10,6 +11,7 @@ export class GroupService {
         private readonly validator: IGroupValidatorAPI,
     ) { }
 
+    @logInfoData(GroupServiceResult)
     public async getGroupById(
         id: string,
     ): Promise<GroupServiceResult<Group>> {
@@ -42,6 +44,7 @@ export class GroupService {
         });
     }
 
+    @logInfoData(GroupServiceResult)
     public async getAllGroups(): Promise<GroupServiceResult<Group[]>> {
         try {
             const groupDatabaseResult = await this.database.getAllGroups();
@@ -57,6 +60,7 @@ export class GroupService {
         }
     }
 
+    @logInfoData(GroupServiceResult)
     public async createGroup(
         dataToCreate: IGroupDataToCreate,
     ): Promise<GroupServiceResult<Group>> {
@@ -93,6 +97,7 @@ export class GroupService {
         }
     }
 
+    @logInfoData(GroupServiceResult)
     public async updateGroup(
         id: string,
         dataToUpdate: IGroupDataToUpdate,
@@ -129,6 +134,7 @@ export class GroupService {
         }
     }
 
+    @logInfoData(GroupServiceResult)
     public async deleteGroup(
         id: string,
     ): Promise<GroupServiceResult<boolean>> {

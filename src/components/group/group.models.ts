@@ -1,3 +1,4 @@
+import type { LogInfo } from '@common/models/log-info.models';
 import { EnumUtils } from '@common/utils/enum-utils';
 import { Initializable } from '@common/utils/initializable';
 import { omit } from 'lodash';
@@ -37,6 +38,8 @@ export class Group extends Initializable<Group> {
 export class GroupServiceResult<T = unknown> extends Initializable<GroupServiceResult> {
     public data?: T;
     public error?: unknown;
+
+    public logInfo?: LogInfo;
 
     constructor(init?: GroupServiceResult) {
         super();
