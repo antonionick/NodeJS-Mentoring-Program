@@ -14,6 +14,7 @@ class Main {
             const dotenvOptions = getDotenvOptions();
 
             Main.initLogger();
+            Main.registerUncaughtExceptionListener();
 
             const validatorProvider = new JoiValidatorProvider();
             const databaseProvider = await Main.initPostgreSQLProvider(dotenvOptions.databaseConnectionString);
@@ -30,6 +31,17 @@ class Main {
         const loggerProvider = new ConsoleLoggerProvider();
         const logger = loggerProvider.initLogger();
         AppLogger.init(logger);
+    }
+
+    private static registerUncaughtExceptionListener(): void {
+        process.on('uncaughtException', (error: Error, origin: string) => {
+            AppLogger.fatal({
+                origin,
+                message: error.message,
+                stack: error.stack,
+            });
+            process.exit(1);
+        });
     }
 
     private static async initPostgreSQLProvider(

@@ -10,17 +10,20 @@ export function unhandledErrorHandler(
     next: NextFunction,
 ): void {
     const { error, logInfo } = errorHandlerData;
-    const responseError = {
-        message: 'Internal server error',
-        details: (error as Error).message,
-    };
 
+    const message = 'Internal server error';
     response
         .status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .json(responseError);
+        .json({ message });
+
+    const objectToLog = {
+        message,
+        details: (error as Error).message,
+        stack: (error as Error).stack,
+    };
 
     AppLogger.error({
-        error: responseError,
+        error: objectToLog,
         logInfo: logInfo?.getInfoToLog!(),
     });
 }
