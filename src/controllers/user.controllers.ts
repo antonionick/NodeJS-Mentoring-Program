@@ -28,7 +28,6 @@ export class UserController {
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
                 next(errorHandlerData);
-                return;
             }
 
             const user = userServiceResult.data!;
@@ -36,7 +35,8 @@ export class UserController {
                 .status(StatusCodes.OK)
                 .json(user);
 
-            AppLogger.info(userServiceResult.logInfo!.getInfoToLog!());
+            response.locals.logInfo = userServiceResult.logInfo;
+            next();
         } catch (error) {
             next(new ErrorHandlerData({ error }));
         }
@@ -63,14 +63,15 @@ export class UserController {
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
                 next(errorHandlerData);
-                return;
             }
 
             const autosuggestUsers = userServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(autosuggestUsers);
-            AppLogger.info(userServiceResult.logInfo!.getInfoToLog!());
+
+            response.locals.logInfo = userServiceResult.logInfo;
+            next();
         } catch (error) {
             next(new ErrorHandlerData({ error }));
         }
@@ -89,14 +90,15 @@ export class UserController {
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
                 next(errorHandlerData);
-                return;
             }
 
             const user = userServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(user);
-            AppLogger.info(userServiceResult.logInfo!.getInfoToLog!());
+
+            response.locals.logInfo = userServiceResult.logInfo;
+            next();
         } catch (error) {
             next(new ErrorHandlerData({ error }));
         }
@@ -124,14 +126,15 @@ export class UserController {
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
                 next(errorHandlerData);
-                return;
             }
 
             const user = userServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(user);
-            AppLogger.info(userServiceResult.logInfo!.getInfoToLog!());
+
+            response.locals.logInfo = userServiceResult.logInfo;
+            next();
         } catch (error) {
             next(new ErrorHandlerData({ error }));
         }
@@ -157,7 +160,6 @@ export class UserController {
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
                 next(errorHandlerData);
-                return;
             }
 
             const isDeleted = userServiceResult.data!;
@@ -165,7 +167,8 @@ export class UserController {
                 .status(StatusCodes.OK)
                 .send(isDeleted);
 
-            AppLogger.info(userServiceResult.logInfo!.getInfoToLog!());
+            response.locals.logInfo = userServiceResult.logInfo;
+            next();
         } catch (error) {
             next(new ErrorHandlerData({ error }));
         }
@@ -192,7 +195,6 @@ export class UserController {
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
                 next(errorHandlerData);
-                return;
             }
 
             const areUsersAdded = userServiceResult.data!;
@@ -200,7 +202,8 @@ export class UserController {
                 .status(StatusCodes.OK)
                 .send(areUsersAdded);
 
-            AppLogger.info(userServiceResult.logInfo!.getInfoToLog!());
+            response.locals.logInfo = userServiceResult.logInfo;
+            next();
         } catch (error) {
             next(new ErrorHandlerData({ error }));
         }
