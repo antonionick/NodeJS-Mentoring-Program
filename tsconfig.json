@@ -17,7 +17,8 @@
             "@database/*": ["database/*"],
             "@components/*": ["components/*"],
             "@controllers/*": ["controllers/*"],
-            "@validators/*": ["validators/*"]
+            "@validators/*": ["validators/*"],
+            "@logger/*": ["logger/*"]
         },
         "resolveJsonModule": true,
         "outDir": "dist",
@@ -40,5 +41,6 @@
         "allowUnreachableCode": true,
         "skipLibCheck": true,
         "allowJs": true,
+        "sourceMap" : true
     }
 }

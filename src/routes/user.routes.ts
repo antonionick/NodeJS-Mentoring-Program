@@ -1,3 +1,4 @@
+import { logInfoMiddleware } from '@common/middlewares/log-info.middleware';
 import { UserController } from '@controllers/user.controllers';
 import type { IDatabaseProvider } from '@database/models/database-provider.models';
 import type { IValidatorProvider } from '@validators/models/validators-provider.models';
@@ -10,14 +11,38 @@ export function getUserRoutes(
     const userRouter = Router();
     const userController = new UserController(databaseProvider, validatorProvider);
 
-    userRouter.get('/byId/:id', userController.getUserById.bind(userController));
-    userRouter.get('/autosuggest', userController.getAutosuggest.bind(userController));
+    userRouter.get(
+        '/byId/:id',
+        userController.getUserById.bind(userController),
+        logInfoMiddleware,
+    );
+    userRouter.get(
+        '/autosuggest',
+        userController.getAutosuggest.bind(userController),
+        logInfoMiddleware,
+    );
 
-    userRouter.post('/', userController.createUser.bind(userController));
-    userRouter.put('/:id', userController.updateUser.bind(userController));
-    userRouter.delete('/:id', userController.deleteUser.bind(userController));
+    userRouter.post(
+        '/',
+        userController.createUser.bind(userController),
+        logInfoMiddleware,
+    );
+    userRouter.put(
+        '/:id',
+        userController.updateUser.bind(userController),
+        logInfoMiddleware,
+    );
+    userRouter.delete(
+        '/:id',
+        userController.deleteUser.bind(userController),
+        logInfoMiddleware,
+    );
 
-    userRouter.post('/addUsersToGroup', userController.addUsersToGroup.bind(userController));
+    userRouter.post(
+        '/addUsersToGroup',
+        userController.addUsersToGroup.bind(userController),
+        logInfoMiddleware,
+    );
 
     return userRouter;
 }

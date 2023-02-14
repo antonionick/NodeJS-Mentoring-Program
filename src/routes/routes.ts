@@ -1,11 +1,12 @@
 import type { Express } from 'express';
 import { getUserRoutes } from '@routes/user.routes';
-import { commonErrorHandler } from '@common/errors/common-error-handler';
-import { validatorErrorHandler } from '@common/errors/validator-error-handler';
+import { validatorErrorHandler } from '@common/errors-handlers/validator-error-handler';
 import type { IDatabaseProvider } from '@database/models/database-provider.models';
 import type { IValidatorProvider } from '@validators/models/validators-provider.models';
-import { databaseErrorHandler } from '@common/errors/database-error-handler';
+import { databaseErrorHandler } from '@common/errors-handlers/database-error-handler';
 import { getGroupRoutes } from '@routes/group.routes';
+import { serviceErrorHandler } from '@common/errors-handlers/service-error-handler';
+import { unhandledErrorHandler } from '@common/errors-handlers/unhandled-error-handler';
 
 enum Routes {
     Users = 'users',
@@ -23,6 +24,7 @@ export function initRoutes(
     app.use(
         validatorErrorHandler,
         databaseErrorHandler,
-        commonErrorHandler,
+        serviceErrorHandler,
+        unhandledErrorHandler,
     );
 }

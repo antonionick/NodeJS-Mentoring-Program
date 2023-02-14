@@ -1,9 +1,11 @@
-import type { IGroupDataToCreate, IGroupDataToUpdate } from '@components/group/group.models';
+import type { GroupServiceResult, IGroupDataToCreate, IGroupDataToUpdate } from '@components/group/group.models';
 import { GroupService } from '@components/group/group.service';
 import type { IDatabaseProvider } from '@database/models/database-provider.models';
 import type { IValidatorProvider } from '@validators/models/validators-provider.models';
 import type { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { AppLogger } from '@logger/app-logger';
+import { ErrorHandlerData } from '@common/models/error-handler-data.models';
 
 export class GroupController {
     private groupService: GroupService;
@@ -22,13 +24,29 @@ export class GroupController {
         const id = request.params.id;
 
         try {
-            const group = await groupService.getGroupById(id);
+            const groupServiceResult = await groupService.getGroupById(id);
+            if (groupServiceResult.hasError!()) {
+                const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
+                next(errorHandlerData);
+            }
+
+            const group = groupServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(group);
+
+            response.locals.logInfo = groupServiceResult.logInfo;
+            next();
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
+    }
+
+    private getErrorHandlerData(groupServiceResult: GroupServiceResult): ErrorHandlerData {
+        return new ErrorHandlerData({
+            error: groupServiceResult.error,
+            logInfo: groupServiceResult.logInfo,
+        });
     }
 
     public async getAllGroups(
@@ -39,12 +57,21 @@ export class GroupController {
         const groupService = this.getGroupService();
 
         try {
-            const groups = await groupService.getAllGroups();
+            const groupServiceResult = await groupService.getAllGroups();
+            if (groupServiceResult.hasError!()) {
+                const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
+                next(errorHandlerData);
+            }
+
+            const groups = groupServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(groups);
+
+            response.locals.logInfo = groupServiceResult.logInfo;
+            next();
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 
@@ -57,12 +84,21 @@ export class GroupController {
         const groupDataToCreate = this.getGroupDataToCreate(request);
 
         try {
-            const createdGroup = await groupService.createGroup(groupDataToCreate);
+            const groupServiceResult = await groupService.createGroup(groupDataToCreate);
+            if (groupServiceResult.hasError!()) {
+                const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
+                next(errorHandlerData);
+            }
+
+            const createdGroup = groupServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(createdGroup);
+
+            response.locals.logInfo = groupServiceResult.logInfo;
+            next();
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 
@@ -83,12 +119,21 @@ export class GroupController {
         const groupIdToUpdate = request.params.id;
 
         try {
-            const updatedGroup = await groupService.updateGroup(groupIdToUpdate, groupDataToUpdate);
+            const groupServiceResult = await groupService.updateGroup(groupIdToUpdate, groupDataToUpdate);
+            if (groupServiceResult.hasError!()) {
+                const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
+                next(errorHandlerData);
+            }
+
+            const updatedGroup = groupServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(updatedGroup);
+
+            response.locals.logInfo = groupServiceResult.logInfo;
+            next();
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 
@@ -107,12 +152,21 @@ export class GroupController {
         const groupIdToDelete = request.params.id;
 
         try {
-            const isDeleted = await groupService.deleteGroup(groupIdToDelete);
+            const groupServiceResult = await groupService.deleteGroup(groupIdToDelete);
+            if (groupServiceResult.hasError!()) {
+                const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
+                next(errorHandlerData);
+            }
+
+            const isDeleted = groupServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .send(isDeleted);
+
+            response.locals.logInfo = groupServiceResult.logInfo;
+            next();
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 

@@ -1,9 +1,11 @@
-import type { IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
+import type { IUserDataToCreate, IUserDataToUpdate, UserServiceResult } from '@components/user/user.models';
 import { UserService } from '@components/user/user.service';
 import type { IDatabaseProvider } from '@database/models/database-provider.models';
 import type { IValidatorProvider } from '@validators/models/validators-provider.models';
 import type { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes/build/cjs/status-codes';
+import { AppLogger } from '@logger/app-logger';
+import { ErrorHandlerData } from '@common/models/error-handler-data.models';
 
 export class UserController {
     private userService: UserService;
@@ -22,14 +24,29 @@ export class UserController {
         const id = request.params.id;
 
         try {
-            const user = await userService.getUserById(id);
+            const userServiceResult = await userService.getUserById(id);
+            if (userServiceResult.hasError!()) {
+                const errorHandlerData = this.getErrorHandlerData(userServiceResult)
+                next(errorHandlerData);
+            }
+
+            const user = userServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(user);
+
+            response.locals.logInfo = userServiceResult.logInfo;
             next();
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
+    }
+
+    private getErrorHandlerData(userServiceResult: UserServiceResult): ErrorHandlerData {
+        return new ErrorHandlerData({
+            error: userServiceResult.error,
+            logInfo: userServiceResult.logInfo,
+        });
     }
 
     public async getAutosuggest(
@@ -41,15 +58,22 @@ export class UserController {
         const { limit, loginSubstring } = request.query;
 
         try {
-            const autosuggestUsers = await userService
+            const userServiceResult = await userService
                 .getAutosuggestUsers(loginSubstring as string, Number(limit));
+            if (userServiceResult.hasError!()) {
+                const errorHandlerData = this.getErrorHandlerData(userServiceResult)
+                next(errorHandlerData);
+            }
 
+            const autosuggestUsers = userServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(autosuggestUsers);
+
+            response.locals.logInfo = userServiceResult.logInfo;
             next();
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 
@@ -62,13 +86,21 @@ export class UserController {
         const userDataToCreate = this.getUserDataToCreate(request);
 
         try {
-            const user = await userService.createUser(userDataToCreate);
+            const userServiceResult = await userService.createUser(userDataToCreate);
+            if (userServiceResult.hasError!()) {
+                const errorHandlerData = this.getErrorHandlerData(userServiceResult)
+                next(errorHandlerData);
+            }
+
+            const user = userServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(user);
+
+            response.locals.logInfo = userServiceResult.logInfo;
             next();
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 
@@ -90,13 +122,21 @@ export class UserController {
         const userIdToUpdate = request.params.id;
 
         try {
-            const user = await userService.updateUser(userIdToUpdate, userDataToUpdate);
+            const userServiceResult = await userService.updateUser(userIdToUpdate, userDataToUpdate);
+            if (userServiceResult.hasError!()) {
+                const errorHandlerData = this.getErrorHandlerData(userServiceResult)
+                next(errorHandlerData);
+            }
+
+            const user = userServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .json(user);
+
+            response.locals.logInfo = userServiceResult.logInfo;
             next();
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 
@@ -116,13 +156,21 @@ export class UserController {
         const userIdToDelete = request.params.id;
 
         try {
-            const isDeleted = await userService.deleteUser(userIdToDelete);
+            const userServiceResult = await userService.deleteUser(userIdToDelete);
+            if (userServiceResult.hasError!()) {
+                const errorHandlerData = this.getErrorHandlerData(userServiceResult)
+                next(errorHandlerData);
+            }
+
+            const isDeleted = userServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .send(isDeleted);
+
+            response.locals.logInfo = userServiceResult.logInfo;
             next();
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 
@@ -142,12 +190,22 @@ export class UserController {
                     .map(userId => userId.trim());
             }
 
-            const areUsersAdded = await userService.addUsersToGroup(groupId as string, usersIds as string[]);
+            const userServiceResult = await userService
+                .addUsersToGroup(groupId as string, usersIds as string[]);
+            if (userServiceResult.hasError!()) {
+                const errorHandlerData = this.getErrorHandlerData(userServiceResult)
+                next(errorHandlerData);
+            }
+
+            const areUsersAdded = userServiceResult.data!;
             response
                 .status(StatusCodes.OK)
                 .send(areUsersAdded);
+
+            response.locals.logInfo = userServiceResult.logInfo;
+            next();
         } catch (error) {
-            next(error);
+            next(new ErrorHandlerData({ error }));
         }
     }
 
