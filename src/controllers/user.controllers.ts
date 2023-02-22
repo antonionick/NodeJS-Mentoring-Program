@@ -1,11 +1,11 @@
-import type { IUserDataToCreate, IUserDataToUpdate, UserServiceResult } from '@components/user/user.models';
+import type { IUserDatabaseModel, IUserDataToCreate, IUserDataToUpdate, UserServiceResult } from '@components/user/user.models';
 import { UserService } from '@components/user/user.service';
 import type { IDatabaseProvider } from '@database/models/database-provider.models';
 import type { IValidatorProvider } from '@validators/models/validators-provider.models';
 import type { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes/build/cjs/status-codes';
-import { AppLogger } from '@logger/app-logger';
 import { ErrorHandlerData } from '@common/models/error-handler-data.models';
+import type { PassportAuthenticator } from '@authenticator/passport.authenticator';
 
 export class UserController {
     private userService: UserService;
@@ -13,7 +13,26 @@ export class UserController {
     constructor(
         private readonly databaseProvider: IDatabaseProvider,
         private readonly validatorProvider: IValidatorProvider,
+        private readonly authenticator: PassportAuthenticator,
     ) { }
+
+    public async login(
+        request: Request,
+        response: Response,
+        next: NextFunction,
+    ): Promise<void> {
+        try {
+            const userDatabaseModel = request.user as unknown as IUserDatabaseModel;
+            const { login, password } = userDatabaseModel;
+            const token = this.authenticator.login(login, password);
+
+            response
+                .status(StatusCodes.OK)
+                .send(token);
+        } catch (error: unknown) {
+            next(new ErrorHandlerData({ error }));
+        }
+    }
 
     public async getUserById(
         request: Request,

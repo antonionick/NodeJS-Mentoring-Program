@@ -18,7 +18,8 @@
             "@components/*": ["components/*"],
             "@controllers/*": ["controllers/*"],
             "@validators/*": ["validators/*"],
-            "@logger/*": ["logger/*"]
+            "@logger/*": ["logger/*"],
+            "@authenticator/*": ["authenticator/*"]
         },
         "resolveJsonModule": true,
         "outDir": "dist",

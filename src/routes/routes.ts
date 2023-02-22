@@ -7,6 +7,7 @@ import { databaseErrorHandler } from '@common/errors-handlers/database-error-han
 import { getGroupRoutes } from '@routes/group.routes';
 import { serviceErrorHandler } from '@common/errors-handlers/service-error-handler';
 import { unhandledErrorHandler } from '@common/errors-handlers/unhandled-error-handler';
+import type { PassportAuthenticator } from '@authenticator/passport.authenticator';
 
 enum Routes {
     Users = 'users',
@@ -17,8 +18,12 @@ export function initRoutes(
     app: Express,
     databaseProvider: IDatabaseProvider,
     validatorProvider: IValidatorProvider,
+    authenticator: PassportAuthenticator,
 ): void {
-    app.use(`/${Routes.Users}`, getUserRoutes(databaseProvider, validatorProvider));
+    app.use(
+        `/${Routes.Users}`,
+        getUserRoutes(databaseProvider, validatorProvider, authenticator),
+    );
     app.use(`/${Routes.Groups}`, getGroupRoutes(databaseProvider, validatorProvider));
 
     app.use(

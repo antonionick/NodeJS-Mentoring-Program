@@ -5,6 +5,9 @@ export interface IUserDatabaseAPI {
     getUserById(
         id: string
     ): Promise<DatabaseResult<IUserDatabaseModel>>;
+    getUserByLogin(
+        login: string,
+    ): Promise<DatabaseResult<IUserDatabaseModel>>;
     getAutoSuggestUsers(
         loginSubstring: string,
         limit: number,
@@ -30,7 +33,7 @@ export interface IUserDatabaseAPI {
         id: string,
     ): Promise<DatabaseResult<boolean>>;
     checkUserExistenceByLogin(
-        id: string,
+        login: string,
     ): Promise<DatabaseResult<boolean>>;
 
     checkUserBelongsToGroup(

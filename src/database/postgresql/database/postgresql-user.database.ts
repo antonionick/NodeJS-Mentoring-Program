@@ -58,6 +58,26 @@ export class PostgreSQLUserDatabase
         return userDatabaseModel;
     }
 
+    public async getUserByLogin(
+        login: string,
+    ): Promise<DatabaseResult<IUserDatabaseModel>> {
+        try {
+            const userSequelizeModel = await SequelizeUserModel.findOne({
+                where: {
+                    [PostgreSQLUsersTableColumn.login]: login,
+                    [PostgreSQLUsersTableColumn.isDeleted]: IS_DELETED_COMMON_QUERY,
+                },
+            });
+
+            const resultUserMorel = userSequelizeModel
+                ? this.convertSequelizeModelToDatabaseModel(userSequelizeModel)
+                : null!;
+            return new DatabaseResult({ data: resultUserMorel });
+        } catch (error) {
+            return this.handlerError(error) as DatabaseResult<IUserDatabaseModel>;
+        }
+    }
+
     public async getAutoSuggestUsers(
         loginSubstring: string,
         limit: number,
