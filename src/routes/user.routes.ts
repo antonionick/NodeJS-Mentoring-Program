@@ -21,33 +21,39 @@ export function getUserRoutes(
 
     userRouter.get(
         '/byId/:id',
+        authenticator.getBearerStrategyAuthenticator(),
         userController.getUserById.bind(userController),
         logInfoMiddleware,
     );
     userRouter.get(
         '/autosuggest',
+        authenticator.getBearerStrategyAuthenticator(),
         userController.getAutosuggest.bind(userController),
         logInfoMiddleware,
     );
 
     userRouter.post(
         '/',
+        authenticator.getBearerStrategyAuthenticator(),
         userController.createUser.bind(userController),
         logInfoMiddleware,
     );
     userRouter.put(
         '/:id',
+        authenticator.getBearerStrategyAuthenticator(),
         userController.updateUser.bind(userController),
         logInfoMiddleware,
     );
     userRouter.delete(
         '/:id',
+        authenticator.getBearerStrategyAuthenticator(),
         userController.deleteUser.bind(userController),
         logInfoMiddleware,
     );
 
     userRouter.post(
         '/addUsersToGroup',
+        authenticator.getBearerStrategyAuthenticator(),
         userController.addUsersToGroup.bind(userController),
         logInfoMiddleware,
     );
