@@ -1,4 +1,5 @@
 import type { Express } from 'express';
+import cors from 'cors';
 import { getUserRoutes } from '@routes/user.routes';
 import { validatorErrorHandler } from '@common/errors-handlers/validator-error-handler';
 import type { IDatabaseProvider } from '@database/models/database-provider.models';
@@ -21,6 +22,8 @@ export function initRoutes(
     validatorProvider: IValidatorProvider,
     authenticator: PassportAuthenticator,
 ): void {
+    app.use(cors());
+
     app.use(
         `/${Routes.Users}`,
         getUserRoutes(databaseProvider, validatorProvider, authenticator),
