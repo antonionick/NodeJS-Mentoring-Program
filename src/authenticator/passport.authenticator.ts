@@ -7,9 +7,13 @@ import jwt, { JsonWebTokenError } from 'jsonwebtoken';
 import { ErrorHandlerData } from '@common/models/error-handler-data.models';
 import { AuthenticatorError } from '@authenticator/models/authenticator-error';
 
-const JWS_PRIVATE_KEY = `BOmFMo26Atavb7Ek6UJm${Date.now()}`;
-const JWS_COMMON_OPTIONS = {
+const JWT_PRIVATE_KEY = `BOmFMo26Atavb7Ek6UJm${Date.now()}`;
+const JWT_COMMON_OPTIONS = {
     expiresIn: '1h',
+};
+
+const AUTHENTICATE_COMMON_OPTIONS = {
+    session: false,
 };
 
 export enum PassportStrategy {
@@ -77,28 +81,12 @@ export class PassportAuthenticator {
         callback: Function,
     ): Promise<void> {
         try {
-            const result = jwt.verify(token, JWS_PRIVATE_KEY);
+            const result = jwt.verify(token, JWT_PRIVATE_KEY);
             return callback(null, result);
         } catch (error: unknown) {
             const errorHandlerData = this.getErrorHandlerData(error);
             callback(errorHandlerData);
         }
-    }
-
-    public getLocalStrategyAuthenticator(): RequestHandler {
-        const authenticateOptions = { session: false };
-        return passport.authenticate(PassportStrategy.Local, authenticateOptions);
-    }
-
-    public getBearerStrategyAuthenticator(): RequestHandler {
-        const authenticateOptions = { session: false };
-        return passport.authenticate(PassportStrategy.Bearer, authenticateOptions);
-    }
-
-    public login(email: string, password: string): string {
-        const jwsPayload = { email, password };
-        const token = jwt.sign(jwsPayload, JWS_PRIVATE_KEY, JWS_COMMON_OPTIONS);
-        return token;
     }
 
     private getErrorHandlerData(sourceError: unknown): ErrorHandlerData {
@@ -113,5 +101,19 @@ export class PassportAuthenticator {
         return new AuthenticatorError({
             message: error.message,
         });
+    }
+
+    public getLocalStrategyAuthenticator(): RequestHandler {
+        return passport.authenticate(PassportStrategy.Local, AUTHENTICATE_COMMON_OPTIONS);
+    }
+
+    public getBearerStrategyAuthenticator(): RequestHandler {
+        return passport.authenticate(PassportStrategy.Bearer, AUTHENTICATE_COMMON_OPTIONS);
+    }
+
+    public login(email: string, password: string): string {
+        const jwtPayload = { email, password };
+        const token = jwt.sign(jwtPayload, JWT_PRIVATE_KEY, JWT_COMMON_OPTIONS);
+        return token;
     }
 }
