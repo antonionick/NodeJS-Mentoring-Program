@@ -1,5 +1,6 @@
 import type { PassportAuthenticator } from '@authenticator/passport.authenticator';
 import { logInfoMiddleware } from '@common/middlewares/log-info.middleware';
+import { GroupServiceProvider } from '@components/group/group-service.provider';
 import { GroupController } from '@controllers/group.controller';
 import type { IDatabaseProvider } from '@database/models/database-provider.models';
 import type { IValidatorProvider } from '@validators/models/validators-provider.models';
@@ -10,8 +11,14 @@ export function getGroupRoutes(
     validatorProvider: IValidatorProvider,
     authenticator: PassportAuthenticator,
 ): Router {
+    const groupServiceProvider = new GroupServiceProvider();
+    const groupController = new GroupController(
+        databaseProvider,
+        validatorProvider,
+        groupServiceProvider,
+    );
+
     const groupRouter = Router();
-    const groupController = new GroupController(databaseProvider, validatorProvider);
 
     groupRouter.use(authenticator.getBearerStrategyAuthenticator());
 

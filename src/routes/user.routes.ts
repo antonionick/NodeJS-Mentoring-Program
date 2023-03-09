@@ -1,5 +1,6 @@
 import type { PassportAuthenticator } from '@authenticator/passport.authenticator';
 import { logInfoMiddleware } from '@common/middlewares/log-info.middleware';
+import { UserServiceProvider } from '@components/user/user-service.provider';
 import { UserController } from '@controllers/user.controllers';
 import type { IDatabaseProvider } from '@database/models/database-provider.models';
 import type { IValidatorProvider } from '@validators/models/validators-provider.models';
@@ -10,8 +11,15 @@ export function getUserRoutes(
     validatorProvider: IValidatorProvider,
     authenticator: PassportAuthenticator,
 ): Router {
+    const userServiceProvider = new UserServiceProvider();
+    const userController = new UserController(
+        databaseProvider,
+        validatorProvider,
+        authenticator,
+        userServiceProvider,
+    );
+
     const userRouter = Router();
-    const userController = new UserController(databaseProvider, validatorProvider, authenticator);
 
     userRouter.post(
         '/login',
