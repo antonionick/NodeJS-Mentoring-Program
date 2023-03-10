@@ -64,13 +64,42 @@ describe('User Controller', () => {
             login: 'login1@mail.com',
             password: 'Password123',
         };
-        const loginTestHandler = (email: string, password: string): string => `${email}${password}`;
+        const ERROR_TEST_USER_CREDENTIALS: Partial<IUserDatabaseModel> = {
+            login: 'login1@mail.com',
+        };
 
         beforeEach(() => {
-            authenticator.login = loginTestHandler;
+            const loginTestHandler = (login: string, password: string): string => {
+                if (login && password) {
+                    return `${login}${password}`;
+                }
+                throw new Error('Test error text');
+            };
+            authenticator.login = jest.fn(loginTestHandler);
         });
 
-        test(`the status should be ${StatusCodes.OK}`, async () => {
+        test('pass parameters from request to handler', async () => {
+            request.user = TEST_USER_CREDENTIALS;
+
+            await userController.login(request, response, next);
+
+            const loginMock = (authenticator.login as jest.Mock).mock;
+            const firstCall = loginMock.calls[0];
+
+            expect(firstCall[0]).toBe(TEST_USER_CREDENTIALS.login);
+            expect(firstCall[1]).toBe(TEST_USER_CREDENTIALS.password);
+        });
+
+        test(`should call the status method of response`, async () => {
+            request.user = TEST_USER_CREDENTIALS;
+
+            await userController.login(request, response, next);
+
+            const statusMock = (response.status as jest.Mock).mock;
+            expect(statusMock.calls).toHaveLength(1);
+        });
+
+        test(`the status method of response should be ${StatusCodes.OK}`, async () => {
             request.user = TEST_USER_CREDENTIALS;
 
             await userController.login(request, response, next);
@@ -81,34 +110,79 @@ describe('User Controller', () => {
             expect(firstCallArgument).toBe(StatusCodes.OK);
         });
 
-        test('should send token', async () => {
+        test('should call the send method of response', async () => {
             request.user = TEST_USER_CREDENTIALS;
 
             await userController.login(request, response, next);
-
-            const token = loginTestHandler(
-                TEST_USER_CREDENTIALS.login!, TEST_USER_CREDENTIALS.password!);
 
             const sendMock = (response.send as jest.Mock).mock;
-            const sendMockFirstCall = sendMock.calls[0];
-            const firstCallArgument = sendMockFirstCall[0];
-            expect(firstCallArgument).toBe(token);
+            expect(sendMock.calls).toHaveLength(1);
         });
 
-        test('should catch an error', async () => {
+        test('the send method of response should receive value from handler', async () => {
             request.user = TEST_USER_CREDENTIALS;
-
-            authenticator.login = () => { throw new Error() };
 
             await userController.login(request, response, next);
 
-            const nextMock = (next as jest.Mock).mock;
-            expect(nextMock.calls).toHaveLength(1);
+            const sendMock = (response.send as jest.Mock).mock;
+            const sendFirstCall = sendMock.calls[0];
+            const firstCallArgument = sendFirstCall[0];
 
-            const nextMockFirstCall = nextMock.calls[0];
-            const firstCallArgument = nextMockFirstCall[0];
-            expect(firstCallArgument).toBeInstanceOf(ErrorHandlerData);
-        })
+            const loginMock = (authenticator.login as jest.Mock).mock;
+            const authenticatorResult = loginMock.results[0].value;
+
+            expect(firstCallArgument).toBe(authenticatorResult);
+        });
+
+        test(
+            'in case of error next callback should be called with an error',
+            async () => {
+                request.user = ERROR_TEST_USER_CREDENTIALS;
+
+                await userController.login(request, response, next);
+
+                const nextMock = (next as jest.Mock).mock;
+                expect(nextMock.calls).toHaveLength(1);
+            },
+        );
+
+        test(
+            'in case of error should pass instance of ErrorHandlerData to next callback ',
+            async () => {
+                request.user = ERROR_TEST_USER_CREDENTIALS;
+
+                await userController.login(request, response, next);
+
+                const nextMock = (next as jest.Mock).mock;
+                const nextMockFirstCall = nextMock.calls[0];
+                const firstCallArgument = nextMockFirstCall[0];
+                expect(firstCallArgument).toBeInstanceOf(ErrorHandlerData);
+            },
+        );
+
+        test(
+            'in case of error the status method of response should not be called',
+            async () => {
+                request.user = ERROR_TEST_USER_CREDENTIALS;
+
+                await userController.login(request, response, next);
+
+                const statusMock = (response.status as jest.Mock).mock;
+                expect(statusMock.calls).toHaveLength(0);
+            },
+        );
+
+        test(
+            'in case of error the send method of response should not be called',
+            async () => {
+                request.user = ERROR_TEST_USER_CREDENTIALS;
+
+                await userController.login(request, response, next);
+
+                const sendMock = (response.send as jest.Mock).mock;
+                expect(sendMock.calls).toHaveLength(0);
+            },
+        );
     });
 
     describe('getUserById method', () => {
@@ -199,7 +273,7 @@ describe('User Controller', () => {
         });
 
         test(
-            'in case of error next callback should be called',
+            'in case of error next callback should be called with an error',
             async () => {
                 request.params = { id: 'some' };
 
@@ -351,7 +425,7 @@ describe('User Controller', () => {
         });
 
         test(
-            'in case of error next callback should be called',
+            'in case of error next callback should be called with an error',
             async () => {
                 request.query = { limit: '2', loginSubstring: 'some' };
 
