@@ -124,7 +124,7 @@ describe('User Controller', () => {
                 if (id === TEST_USER.id) {
                     return new UserServiceResult<User>({ data: TEST_USER });
                 }
-                return new UserServiceResult<User>({ error: 'User does not exist' });
+                return new UserServiceResult<User>({ error: 'test error text' });
             };
         });
 
@@ -188,6 +188,158 @@ describe('User Controller', () => {
 
                 const statusMock = (response.status as jest.Mock).mock;
                 expect(statusMock.calls).toHaveLength(0);
+
+                const jsonMock = (response.json as jest.Mock).mock;
+                expect(jsonMock.calls).toHaveLength(0);
+            },
+        );
+    });
+
+    describe('getAutosuggest method', () => {
+        const TEST_USERS: User[] = [
+            new User({
+                id: 'user_id1',
+                login: 'login1@mail.com',
+                password: 'Password123',
+                age: 15,
+            }),
+            new User({
+                id: 'user_id2',
+                login: 'login2@mail.com',
+                password: 'Password123',
+                age: 15,
+            }),
+        ];
+
+        beforeEach(() => {
+            const getAutosuggestUsersHandler = async (
+                loginSubstring: string,
+                limit: number,
+            ) => {
+                if (TEST_USERS.some(user => user.login.includes(loginSubstring))) {
+                    return new UserServiceResult<User[]>({ data: TEST_USERS });
+                }
+                return new UserServiceResult<User[]>({ error: 'test error text' });
+            };
+            userService.getAutosuggestUsers = jest.fn(getAutosuggestUsersHandler);
+        });
+
+        test('pass parameters from request to handler', async () => {
+            const limit = '2';
+            const loginSubstring = 'login';
+            request.query = { limit, loginSubstring };
+
+            await userController.getAutosuggest(request, response, next);
+
+            const getAutosuggestUsersMock = (userService.getAutosuggestUsers as jest.Mock).mock;
+            const firstCall = getAutosuggestUsersMock.calls[0];
+
+            expect(firstCall[0]).toBe(loginSubstring);
+            expect(firstCall[1]).toBe(Number(limit));
+        });
+
+        test(`should call the status method of response`, async () => {
+            request.query = { limit: '2', loginSubstring: 'login' };
+
+            await userController.getAutosuggest(request, response, next);
+
+            const statusMock = (response.status as jest.Mock).mock;
+            expect(statusMock.calls).toHaveLength(1);
+        });
+
+        test(`the status method of response should be ${StatusCodes.OK}`, async () => {
+            request.query = { limit: '2', loginSubstring: 'login' };
+
+            await userController.getAutosuggest(request, response, next);
+
+            const statusMock = (response.status as jest.Mock).mock;
+            const statusFirstCall = statusMock.calls[0];
+            const firstCallArgument = statusFirstCall[0];
+            expect(firstCallArgument).toBe(StatusCodes.OK);
+        });
+
+        test('should call the json method of response', async () => {
+            request.query = { limit: '2', loginSubstring: 'login' };
+
+            await userController.getAutosuggest(request, response, next);
+
+            const jsonMock = (response.json as jest.Mock).mock;
+            expect(jsonMock.calls).toHaveLength(1);
+        });
+
+        test('the json method of response should receive value from handler', async () => {
+            request.query = { limit: '2', loginSubstring: 'login' };
+
+            await userController.getAutosuggest(request, response, next);
+
+            const jsonMock = (response.json as jest.Mock).mock;
+            const jsonFirstCall = jsonMock.calls[0];
+            const firstCallArgument = jsonFirstCall[0];
+
+            const getAutosuggestUsersMock = (userService.getAutosuggestUsers as jest.Mock).mock;
+            const userServiceResult = await getAutosuggestUsersMock.results[0].value;
+            const resultValue = userServiceResult.data!;
+
+            expect(firstCallArgument).toBe(resultValue);
+        });
+
+        test('should call next function without arguments', async () => {
+            request.query = { limit: '2', loginSubstring: 'login' };
+
+            await userController.getAutosuggest(request, response, next);
+
+            const nextMock = (next as jest.Mock).mock;
+            expect(nextMock.calls).toHaveLength(1);
+
+            const nextMockFirstCall = nextMock.calls[0];
+            const firstCallArgument = nextMockFirstCall[0];
+            expect(firstCallArgument).toBe(undefined);
+        });
+
+        test(
+            'in case of error next callback should be called',
+            async () => {
+                request.query = { limit: '2', loginSubstring: 'some' };
+
+                await userController.getAutosuggest(request, response, next);
+
+                const nextMock = (next as jest.Mock).mock;
+                expect(nextMock.calls).toHaveLength(1);
+            },
+        );
+
+        test(
+            'in case of error should pass instance of ErrorHandlerData to next callback ',
+            async () => {
+                request.query = { limit: '2', loginSubstring: 'some' };
+
+                await userController.getAutosuggest(request, response, next);
+
+                const nextMock = (next as jest.Mock).mock;
+                const nextMockFirstCall = nextMock.calls[0];
+                const firstCallArgument = nextMockFirstCall[0];
+                expect(firstCallArgument).toBeInstanceOf(ErrorHandlerData);
+            },
+        );
+
+        test(
+            'in case of error the status method of response should not be called',
+            async () => {
+                request.query = { limit: '2', loginSubstring: 'some' };
+
+                await userController.getAutosuggest(request, response, next);
+
+                const statusMock = (response.status as jest.Mock).mock;
+                expect(statusMock.calls).toHaveLength(0);
+            },
+        );
+
+        test(
+            'in case of error the json method of response should not be called',
+            async () => {
+                request.query = { limit: '2', loginSubstring: 'some' };
+
+                await userController.getAutosuggest(request, response, next);
 
                 const jsonMock = (response.json as jest.Mock).mock;
                 expect(jsonMock.calls).toHaveLength(0);
