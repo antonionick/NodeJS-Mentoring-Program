@@ -5,7 +5,7 @@ import type { IValidatorProvider } from '@validators/models/validators-provider.
 import type { PassportAuthenticator } from '@authenticator/passport.authenticator';
 import type { UserServiceProvider } from '@components/user/user-service.provider';
 import type { UserService } from '@components/user/user.service';
-import { IUserDatabaseModel, UserServiceResult, User } from '@components/user/user.models';
+import { IUserDatabaseModel, UserServiceResult, User, IUserDataToCreate } from '@components/user/user.models';
 import { UserController } from '@controllers/user.controller';
 import { ErrorHandlerData } from '@common/models/error-handler-data.models';
 
@@ -468,6 +468,154 @@ describe('User Controller', () => {
                 request.query = { limit: '2', loginSubstring: 'some' };
 
                 await userController.getAutosuggest(request, response, next);
+
+                const jsonMock = (response.json as jest.Mock).mock;
+                expect(jsonMock.calls).toHaveLength(0);
+            },
+        );
+    });
+
+    describe('createUser method', () => {
+        const TEST_USER_DATA_TO_CREATE: IUserDataToCreate = {
+            login: 'login1@mail.com',
+            password: 'Password123',
+            age: 15,
+        };
+        const ERROR_TEST_USER_DATA_TO_CREATE: IUserDataToCreate = {
+            ...TEST_USER_DATA_TO_CREATE,
+            login: 'error',
+        };
+
+        beforeEach(() => {
+            const createUserHandler = async (
+                userData: IUserDataToCreate,
+            ): Promise<UserServiceResult<User>> => {
+                if (userData.login === TEST_USER_DATA_TO_CREATE.login) {
+                    return new UserServiceResult<User>({
+                        data: new User({
+                            ...userData,
+                            id: 'user_id',
+                        }),
+                    });
+                }
+                return new UserServiceResult<User>({ error: 'test error text' });
+            };
+            userService.createUser = jest.fn(createUserHandler);
+        });
+
+        test('pass parameters from request to handler', async () => {
+            request.body = TEST_USER_DATA_TO_CREATE;
+
+            await userController.createUser(request, response, next);
+
+            const createUserMock = (userService.createUser as jest.Mock).mock;
+            const firstCall = createUserMock.calls[0];
+
+            expect(firstCall[0]).toEqual(TEST_USER_DATA_TO_CREATE);
+        });
+
+        test(`should call the status method of response`, async () => {
+            request.body = TEST_USER_DATA_TO_CREATE;
+
+            await userController.createUser(request, response, next);
+
+            const statusMock = (response.status as jest.Mock).mock;
+            expect(statusMock.calls).toHaveLength(1);
+        });
+
+        test(`the status method of response should be ${StatusCodes.OK}`, async () => {
+            request.body = TEST_USER_DATA_TO_CREATE;
+
+            await userController.createUser(request, response, next);
+
+            const statusMock = (response.status as jest.Mock).mock;
+            const statusFirstCall = statusMock.calls[0];
+            const firstCallArgument = statusFirstCall[0];
+            expect(firstCallArgument).toBe(StatusCodes.OK);
+        });
+
+        test('should call the json method of response', async () => {
+            request.body = TEST_USER_DATA_TO_CREATE;
+
+            await userController.createUser(request, response, next);
+
+            const jsonMock = (response.json as jest.Mock).mock;
+            expect(jsonMock.calls).toHaveLength(1);
+        });
+
+        test('the json method of response should receive value from handler', async () => {
+            request.body = TEST_USER_DATA_TO_CREATE;
+
+            await userController.createUser(request, response, next);
+
+            const jsonMock = (response.json as jest.Mock).mock;
+            const jsonFirstCall = jsonMock.calls[0];
+            const firstCallArgument = jsonFirstCall[0];
+
+            const createUserMock = (userService.createUser as jest.Mock).mock;
+            const userServiceResult = await createUserMock.results[0].value;
+            const resultValue = userServiceResult.data!;
+
+            expect(firstCallArgument).toBe(resultValue);
+        });
+
+        test('should call next function without arguments', async () => {
+            request.body = TEST_USER_DATA_TO_CREATE;
+
+            await userController.createUser(request, response, next);
+
+            const nextMock = (next as jest.Mock).mock;
+            expect(nextMock.calls).toHaveLength(1);
+
+            const nextMockFirstCall = nextMock.calls[0];
+            const firstCallArgument = nextMockFirstCall[0];
+            expect(firstCallArgument).toBe(undefined);
+        });
+
+        test(
+            'in case of error next callback should be called with an error',
+            async () => {
+                request.body = ERROR_TEST_USER_DATA_TO_CREATE;
+
+                await userController.createUser(request, response, next);
+
+                const nextMock = (next as jest.Mock).mock;
+                expect(nextMock.calls).toHaveLength(1);
+            },
+        );
+
+        test(
+            'in case of error should pass instance of ErrorHandlerData to next callback ',
+            async () => {
+                request.body = ERROR_TEST_USER_DATA_TO_CREATE;
+
+                await userController.createUser(request, response, next);
+
+                const nextMock = (next as jest.Mock).mock;
+                const nextMockFirstCall = nextMock.calls[0];
+                const firstCallArgument = nextMockFirstCall[0];
+                expect(firstCallArgument).toBeInstanceOf(ErrorHandlerData);
+            },
+        );
+
+        test(
+            'in case of error the status method of response should not be called',
+            async () => {
+                request.body = ERROR_TEST_USER_DATA_TO_CREATE;
+
+                await userController.createUser(request, response, next);
+
+                const statusMock = (response.status as jest.Mock).mock;
+                expect(statusMock.calls).toHaveLength(0);
+            },
+        );
+
+        test(
+            'in case of error the json method of response should not be called',
+            async () => {
+                request.body = ERROR_TEST_USER_DATA_TO_CREATE;
+
+                await userController.createUser(request, response, next);
 
                 const jsonMock = (response.json as jest.Mock).mock;
                 expect(jsonMock.calls).toHaveLength(0);
