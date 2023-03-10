@@ -78,7 +78,7 @@ describe('User Controller', () => {
             authenticator.login = jest.fn(loginTestHandler);
         });
 
-        test('pass parameters from request to handler', async () => {
+        test('should pass parameters from request to handler', async () => {
             request.user = TEST_USER_CREDENTIALS;
 
             await userController.login(request, response, next);
@@ -203,7 +203,7 @@ describe('User Controller', () => {
             userService.getUserById = jest.fn(getUserByIdHandler);
         });
 
-        test('pass parameters from request to handler', async () => {
+        test('should pass parameters from request to handler', async () => {
             request.params = { id: TEST_USER.id };
 
             await userController.getUserById(request, response, next);
@@ -352,7 +352,7 @@ describe('User Controller', () => {
             userService.getAutosuggestUsers = jest.fn(getAutosuggestUsersHandler);
         });
 
-        test('pass parameters from request to handler', async () => {
+        test('should pass parameters from request to handler', async () => {
             const limit = '2';
             const loginSubstring = 'login';
             request.query = { limit, loginSubstring };
@@ -503,7 +503,7 @@ describe('User Controller', () => {
             userService.createUser = jest.fn(createUserHandler);
         });
 
-        test('pass parameters from request to handler', async () => {
+        test('should pass parameters from request to handler', async () => {
             request.body = TEST_USER_DATA_TO_CREATE;
 
             await userController.createUser(request, response, next);
@@ -655,7 +655,7 @@ describe('User Controller', () => {
             userService.updateUser = jest.fn(updateUserHandler);
         });
 
-        test('pass parameters from request to handler', async () => {
+        test('should pass parameters from request to handler', async () => {
             request = {
                 params: { id: TEST_USER.id },
                 body: TEST_USER_DATA_TO_UPDATE,
@@ -827,7 +827,7 @@ describe('User Controller', () => {
             userService.deleteUser = jest.fn(deleteUserHandler);
         });
 
-        test('pass parameters from request to handler', async () => {
+        test('should pass parameters from request to handler', async () => {
             request.params = { id: TEST_USER.id };
 
             await userController.deleteUser(request, response, next);
@@ -940,6 +940,157 @@ describe('User Controller', () => {
                 request.params = { id: ERROR_TEST_USER_ID };
 
                 await userController.deleteUser(request, response, next);
+
+                const sendMock = (response.send as jest.Mock).mock;
+                expect(sendMock.calls).toHaveLength(0);
+            },
+        );
+    });
+
+    describe('addUsersToGroup method', () => {
+        const TEST_USER_IDS_LIST = ['user_id_1', 'user_id_2', 'user_id_3'];
+        const TEST_USER_IDS = TEST_USER_IDS_LIST.join(',');
+        const TEST_GROUP_ID = 'group_id';
+        const ERROR_TEST_GROUP_ID = 'some'
+
+        beforeEach(() => {
+            const addUsersToGroupHandler = async (
+                groupId: string,
+                usersIds: string[],
+            ): Promise<UserServiceResult<boolean>> => {
+                if (groupId === TEST_GROUP_ID) {
+                    return new UserServiceResult<boolean>({ data: true });
+                }
+                return new UserServiceResult<boolean>({ error: 'test error text' });
+            };
+            userService.addUsersToGroup = jest.fn(addUsersToGroupHandler);
+        });
+
+        test('should pass parameters from request to handler', async () => {
+            request.query = { usersIds: TEST_USER_IDS_LIST, groupId: TEST_GROUP_ID };
+
+            await userController.addUsersToGroup(request, response, next);
+
+            const addUsersToGroupMock = (userService.addUsersToGroup as jest.Mock).mock;
+            const firstCall = addUsersToGroupMock.calls[0];
+
+            expect(firstCall[0]).toBe(TEST_GROUP_ID);
+            expect(firstCall[1]).toEqual(TEST_USER_IDS_LIST);
+        });
+
+        test('in case usersIds is a string should transform it to an array', async () => {
+            request.query = { usersIds: TEST_USER_IDS, groupId: TEST_GROUP_ID };
+
+            await userController.addUsersToGroup(request, response, next);
+
+            const addUsersToGroupMock = (userService.addUsersToGroup as jest.Mock).mock;
+            const firstCall = addUsersToGroupMock.calls[0];
+
+            expect(firstCall[1]).toEqual(TEST_USER_IDS_LIST);
+        });
+
+        test(`should call the status method of response`, async () => {
+            request.query = { usersIds: TEST_USER_IDS, groupId: TEST_GROUP_ID };
+
+            await userController.addUsersToGroup(request, response, next);
+
+            const statusMock = (response.status as jest.Mock).mock;
+            expect(statusMock.calls).toHaveLength(1);
+        });
+
+        test(`the status method of response should be ${StatusCodes.OK}`, async () => {
+            request.query = { usersIds: TEST_USER_IDS, groupId: TEST_GROUP_ID };
+
+            await userController.addUsersToGroup(request, response, next);
+
+            const statusMock = (response.status as jest.Mock).mock;
+            const statusFirstCall = statusMock.calls[0];
+            const firstCallArgument = statusFirstCall[0];
+            expect(firstCallArgument).toBe(StatusCodes.OK);
+        });
+
+        test('should call the send method of response', async () => {
+            request.query = { usersIds: TEST_USER_IDS, groupId: TEST_GROUP_ID };
+
+            await userController.addUsersToGroup(request, response, next);
+
+            const sendMock = (response.send as jest.Mock).mock;
+            expect(sendMock.calls).toHaveLength(1);
+        });
+
+        test('the send method of response should receive value from handler', async () => {
+            request.query = { usersIds: TEST_USER_IDS, groupId: TEST_GROUP_ID };
+
+            await userController.addUsersToGroup(request, response, next);
+
+            const sendMock = (response.send as jest.Mock).mock;
+            const sendFirstCall = sendMock.calls[0];
+            const firstCallArgument = sendFirstCall[0];
+
+            const addUsersToGroupMock = (userService.addUsersToGroup as jest.Mock).mock;
+            const userServiceResult = await addUsersToGroupMock.results[0].value;
+            const resultValue = userServiceResult.data!;
+
+            expect(firstCallArgument).toBe(resultValue);
+        });
+
+        test('should call next function without arguments', async () => {
+            request.query = { usersIds: TEST_USER_IDS, groupId: TEST_GROUP_ID };
+
+            await userController.addUsersToGroup(request, response, next);
+
+            const nextMock = (next as jest.Mock).mock;
+            expect(nextMock.calls).toHaveLength(1);
+
+            const nextMockFirstCall = nextMock.calls[0];
+            const firstCallArgument = nextMockFirstCall[0];
+            expect(firstCallArgument).toBe(undefined);
+        });
+
+        test(
+            'in case of error next callback should be called with an error',
+            async () => {
+                request.query = { usersIds: TEST_USER_IDS, groupId: ERROR_TEST_GROUP_ID };
+
+                await userController.addUsersToGroup(request, response, next);
+
+                const nextMock = (next as jest.Mock).mock;
+                expect(nextMock.calls).toHaveLength(1);
+            },
+        );
+
+        test(
+            'in case of error should pass instance of ErrorHandlerData to next callback ',
+            async () => {
+                request.query = { usersIds: TEST_USER_IDS, groupId: ERROR_TEST_GROUP_ID };
+
+                await userController.addUsersToGroup(request, response, next);
+
+                const nextMock = (next as jest.Mock).mock;
+                const nextMockFirstCall = nextMock.calls[0];
+                const firstCallArgument = nextMockFirstCall[0];
+                expect(firstCallArgument).toBeInstanceOf(ErrorHandlerData);
+            },
+        );
+
+        test(
+            'in case of error the status method of response should not be called',
+            async () => {
+                request.query = { usersIds: TEST_USER_IDS, groupId: ERROR_TEST_GROUP_ID };
+
+                await userController.addUsersToGroup(request, response, next);
+
+                const statusMock = (response.status as jest.Mock).mock;
+                expect(statusMock.calls).toHaveLength(0);
+            },
+        );
+
+        test(
+            'in case of error the send method of response should not be called',
+            async () => {
+                request.query = { usersIds: TEST_USER_IDS, groupId: ERROR_TEST_GROUP_ID };
+
+                await userController.addUsersToGroup(request, response, next);
 
                 const sendMock = (response.send as jest.Mock).mock;
                 expect(sendMock.calls).toHaveLength(0);
