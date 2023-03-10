@@ -5,7 +5,7 @@ import type { IValidatorProvider } from '@validators/models/validators-provider.
 import type { PassportAuthenticator } from '@authenticator/passport.authenticator';
 import type { UserServiceProvider } from '@components/user/user-service.provider';
 import type { UserService } from '@components/user/user.service';
-import { IUserDatabaseModel, UserServiceResult, User, IUserDataToCreate } from '@components/user/user.models';
+import { IUserDatabaseModel, UserServiceResult, User, IUserDataToCreate, IUserDataToUpdate } from '@components/user/user.models';
 import { UserController } from '@controllers/user.controller';
 import { ErrorHandlerData } from '@common/models/error-handler-data.models';
 
@@ -616,6 +616,189 @@ describe('User Controller', () => {
                 request.body = ERROR_TEST_USER_DATA_TO_CREATE;
 
                 await userController.createUser(request, response, next);
+
+                const jsonMock = (response.json as jest.Mock).mock;
+                expect(jsonMock.calls).toHaveLength(0);
+            },
+        );
+    });
+
+    describe('updateUser method', () => {
+        const ERROR_TEST_USER_ID = 'some';
+        const TEST_USER = new User({
+            id: 'user_id',
+            login: 'login123@mail.com',
+            password: 'Password123',
+            age: 15,
+        });
+        const TEST_USER_DATA_TO_UPDATE: IUserDataToUpdate = {
+            password: 'Password123',
+            age: 20,
+        };
+        const TEST_UPDATED_USER = new User({
+            ...TEST_USER,
+            ...TEST_USER_DATA_TO_UPDATE,
+        });
+
+        beforeEach(() => {
+            const updateUserHandler = async (
+                id: string,
+                userData: IUserDataToUpdate,
+            ): Promise<UserServiceResult<User>> => {
+                if (id === TEST_USER.id) {
+                    return new UserServiceResult<User>({
+                        data: TEST_UPDATED_USER,
+                    });
+                }
+                return new UserServiceResult<User>({ error: 'test error text' });
+            };
+            userService.updateUser = jest.fn(updateUserHandler);
+        });
+
+        test('pass parameters from request to handler', async () => {
+            request = {
+                params: { id: TEST_USER.id },
+                body: TEST_USER_DATA_TO_UPDATE,
+            } as unknown as Request;
+
+            await userController.updateUser(request, response, next);
+
+            const updateUserMock = (userService.updateUser as jest.Mock).mock;
+            const firstCall = updateUserMock.calls[0];
+
+            expect(firstCall[0]).toBe(TEST_USER.id);
+            expect(firstCall[1]).toEqual(TEST_USER_DATA_TO_UPDATE);
+        });
+
+        test(`should call the status method of response`, async () => {
+            request = {
+                params: { id: TEST_USER.id },
+                body: TEST_USER_DATA_TO_UPDATE,
+            } as unknown as Request;
+
+            await userController.updateUser(request, response, next);
+
+            const statusMock = (response.status as jest.Mock).mock;
+            expect(statusMock.calls).toHaveLength(1);
+        });
+
+        test(`the status method of response should be ${StatusCodes.OK}`, async () => {
+            request = {
+                params: { id: TEST_USER.id },
+                body: TEST_USER_DATA_TO_UPDATE,
+            } as unknown as Request;
+
+            await userController.updateUser(request, response, next);
+
+            const statusMock = (response.status as jest.Mock).mock;
+            const statusFirstCall = statusMock.calls[0];
+            const firstCallArgument = statusFirstCall[0];
+            expect(firstCallArgument).toBe(StatusCodes.OK);
+        });
+
+        test('should call the json method of response', async () => {
+            request = {
+                params: { id: TEST_USER.id },
+                body: TEST_USER_DATA_TO_UPDATE,
+            } as unknown as Request;
+
+            await userController.updateUser(request, response, next);
+
+            const jsonMock = (response.json as jest.Mock).mock;
+            expect(jsonMock.calls).toHaveLength(1);
+        });
+
+        test('the json method of response should receive value from handler', async () => {
+            request = {
+                params: { id: TEST_USER.id },
+                body: TEST_USER_DATA_TO_UPDATE,
+            } as unknown as Request;
+
+            await userController.updateUser(request, response, next);
+
+            const jsonMock = (response.json as jest.Mock).mock;
+            const jsonFirstCall = jsonMock.calls[0];
+            const firstCallArgument = jsonFirstCall[0];
+
+            const updateUserMock = (userService.updateUser as jest.Mock).mock;
+            const userServiceResult = await updateUserMock.results[0].value;
+            const resultValue = userServiceResult.data!;
+
+            expect(firstCallArgument).toBe(resultValue);
+        });
+
+        test('should call next function without arguments', async () => {
+            request = {
+                params: { id: TEST_USER.id },
+                body: TEST_USER_DATA_TO_UPDATE,
+            } as unknown as Request;
+
+            await userController.updateUser(request, response, next);
+
+            const nextMock = (next as jest.Mock).mock;
+            expect(nextMock.calls).toHaveLength(1);
+
+            const nextMockFirstCall = nextMock.calls[0];
+            const firstCallArgument = nextMockFirstCall[0];
+            expect(firstCallArgument).toBe(undefined);
+        });
+
+        test(
+            'in case of error next callback should be called with an error',
+            async () => {
+                request = {
+                    params: { id: TEST_USER.id },
+                    body: TEST_USER_DATA_TO_UPDATE,
+                } as unknown as Request;
+
+                await userController.updateUser(request, response, next);
+
+                const nextMock = (next as jest.Mock).mock;
+                expect(nextMock.calls).toHaveLength(1);
+            },
+        );
+
+        test(
+            'in case of error should pass instance of ErrorHandlerData to next callback ',
+            async () => {
+                request = {
+                    params: { id: ERROR_TEST_USER_ID },
+                    body: TEST_USER_DATA_TO_UPDATE,
+                } as unknown as Request;
+
+                await userController.updateUser(request, response, next);
+
+                const nextMock = (next as jest.Mock).mock;
+                const nextMockFirstCall = nextMock.calls[0];
+                const firstCallArgument = nextMockFirstCall[0];
+                expect(firstCallArgument).toBeInstanceOf(ErrorHandlerData);
+            },
+        );
+
+        test(
+            'in case of error the status method of response should not be called',
+            async () => {
+                request = {
+                    params: { id: ERROR_TEST_USER_ID },
+                    body: TEST_USER_DATA_TO_UPDATE,
+                } as unknown as Request;
+
+                await userController.updateUser(request, response, next);
+
+                const statusMock = (response.status as jest.Mock).mock;
+                expect(statusMock.calls).toHaveLength(0);
+            },
+        );
+
+        test(
+            'in case of error the json method of response should not be called',
+            async () => {
+                request = {
+                    params: { id: ERROR_TEST_USER_ID },
+                    body: TEST_USER_DATA_TO_UPDATE,
+                } as unknown as Request;
+
+                await userController.updateUser(request, response, next);
 
                 const jsonMock = (response.json as jest.Mock).mock;
                 expect(jsonMock.calls).toHaveLength(0);
