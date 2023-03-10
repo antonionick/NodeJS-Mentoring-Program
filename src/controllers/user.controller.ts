@@ -183,6 +183,7 @@ export class UserController {
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
                 next(errorHandlerData);
+                return;
             }
 
             const isDeleted = userServiceResult.data!;

@@ -805,4 +805,145 @@ describe('User Controller', () => {
             },
         );
     });
+
+    describe('deleteUser method', () => {
+        const ERROR_TEST_USER_ID = 'some';
+        const TEST_USER = new User({
+            id: 'user_id',
+            login: 'login123@mail.com',
+            password: 'Password123',
+            age: 15,
+        });
+
+        beforeEach(() => {
+            const deleteUserHandler = async (
+                id: string,
+            ): Promise<UserServiceResult<boolean>> => {
+                if (id === TEST_USER.id) {
+                    return new UserServiceResult<boolean>({ data: true });
+                }
+                return new UserServiceResult<boolean>({ error: 'test error text' });
+            };
+            userService.deleteUser = jest.fn(deleteUserHandler);
+        });
+
+        test('pass parameters from request to handler', async () => {
+            request.params = { id: TEST_USER.id };
+
+            await userController.deleteUser(request, response, next);
+
+            const deleteUserMock = (userService.deleteUser as jest.Mock).mock;
+            const firstCall = deleteUserMock.calls[0];
+
+            expect(firstCall[0]).toBe(TEST_USER.id);
+        });
+
+        test(`should call the status method of response`, async () => {
+            request.params = { id: TEST_USER.id };
+
+            await userController.deleteUser(request, response, next);
+
+            const statusMock = (response.status as jest.Mock).mock;
+            expect(statusMock.calls).toHaveLength(1);
+        });
+
+        test(`the status method of response should be ${StatusCodes.OK}`, async () => {
+            request.params = { id: TEST_USER.id };
+
+            await userController.deleteUser(request, response, next);
+
+            const statusMock = (response.status as jest.Mock).mock;
+            const statusFirstCall = statusMock.calls[0];
+            const firstCallArgument = statusFirstCall[0];
+            expect(firstCallArgument).toBe(StatusCodes.OK);
+        });
+
+        test('should call the send method of response', async () => {
+            request.params = { id: TEST_USER.id };
+
+            await userController.deleteUser(request, response, next);
+
+            const sendMock = (response.send as jest.Mock).mock;
+            expect(sendMock.calls).toHaveLength(1);
+        });
+
+        test('the send method of response should receive value from handler', async () => {
+            request.params = { id: TEST_USER.id };
+
+            await userController.deleteUser(request, response, next);
+
+            const sendMock = (response.send as jest.Mock).mock;
+            const sendFirstCall = sendMock.calls[0];
+            const firstCallArgument = sendFirstCall[0];
+
+            const deleteUserMock = (userService.deleteUser as jest.Mock).mock;
+            const userServiceResult = await deleteUserMock.results[0].value;
+            const resultValue = userServiceResult.data!;
+
+            expect(firstCallArgument).toBe(resultValue);
+        });
+
+        test('should call next function without arguments', async () => {
+            request.params = { id: TEST_USER.id };
+
+            await userController.deleteUser(request, response, next);
+
+            const nextMock = (next as jest.Mock).mock;
+            expect(nextMock.calls).toHaveLength(1);
+
+            const nextMockFirstCall = nextMock.calls[0];
+            const firstCallArgument = nextMockFirstCall[0];
+            expect(firstCallArgument).toBe(undefined);
+        });
+
+        test(
+            'in case of error next callback should be called with an error',
+            async () => {
+                request.params = { id: ERROR_TEST_USER_ID };
+
+                await userController.deleteUser(request, response, next);
+
+                const nextMock = (next as jest.Mock).mock;
+                expect(nextMock.calls).toHaveLength(1);
+            },
+        );
+
+        test(
+            'in case of error should pass instance of ErrorHandlerData to next callback ',
+            async () => {
+                request.params = { id: ERROR_TEST_USER_ID };
+
+                await userController.deleteUser(request, response, next);
+
+                const nextMock = (next as jest.Mock).mock;
+                const nextMockFirstCall = nextMock.calls[0];
+                const firstCallArgument = nextMockFirstCall[0];
+                expect(firstCallArgument).toBeInstanceOf(ErrorHandlerData);
+            },
+        );
+
+        test(
+            'in case of error the status method of response should not be called',
+            async () => {
+                request.params = { id: ERROR_TEST_USER_ID };
+
+                await userController.deleteUser(request, response, next);
+
+                const statusMock = (response.status as jest.Mock).mock;
+                expect(statusMock.calls).toHaveLength(0);
+            },
+        );
+
+        test(
+            'in case of error the send method of response should not be called',
+            async () => {
+                request.params = { id: ERROR_TEST_USER_ID };
+
+                await userController.deleteUser(request, response, next);
+
+                const sendMock = (response.send as jest.Mock).mock;
+                expect(sendMock.calls).toHaveLength(0);
+            },
+        );
+    });
 });
