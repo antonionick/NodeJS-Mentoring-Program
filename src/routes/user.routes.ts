@@ -1,7 +1,7 @@
 import type { PassportAuthenticator } from '@authenticator/passport.authenticator';
 import { logInfoMiddleware } from '@common/middlewares/log-info.middleware';
 import { UserServiceProvider } from '@components/user/user-service.provider';
-import { UserController } from '@controllers/user.controllers';
+import { UserController } from '@controllers/user.controller';
 import type { IDatabaseProvider } from '@database/models/database-provider.models';
 import type { IValidatorProvider } from '@validators/models/validators-provider.models';
 import { Router } from 'express';
