@@ -120,15 +120,36 @@ describe('User Controller', () => {
         });
 
         beforeEach(() => {
-            userService.getUserById = async (id: string) => {
+            const getUserByIdHandler = async (id: string) => {
                 if (id === TEST_USER.id) {
                     return new UserServiceResult<User>({ data: TEST_USER });
                 }
                 return new UserServiceResult<User>({ error: 'test error text' });
             };
+            userService.getUserById = jest.fn(getUserByIdHandler);
         });
 
-        test(`the status should be ${StatusCodes.OK}`, async () => {
+        test('pass parameters from request to handler', async () => {
+            request.params = { id: TEST_USER.id };
+
+            await userController.getUserById(request, response, next);
+
+            const getUserByIdMock = (userService.getUserById as jest.Mock).mock;
+            const firstCall = getUserByIdMock.calls[0];
+
+            expect(firstCall[0]).toBe(TEST_USER.id);
+        });
+
+        test(`should call the status method of response`, async () => {
+            request.params = { id: TEST_USER.id };
+
+            await userController.getUserById(request, response, next);
+
+            const statusMock = (response.status as jest.Mock).mock;
+            expect(statusMock.calls).toHaveLength(1);
+        });
+
+        test(`the status method of response should be ${StatusCodes.OK}`, async () => {
             request.params = { id: TEST_USER.id };
 
             await userController.getUserById(request, response, next);
@@ -139,7 +160,16 @@ describe('User Controller', () => {
             expect(firstCallArgument).toBe(StatusCodes.OK);
         });
 
-        test('should send found user', async () => {
+        test('should call the json method of response', async () => {
+            request.params = { id: TEST_USER.id };
+
+            await userController.getUserById(request, response, next);
+
+            const jsonMock = (response.json as jest.Mock).mock;
+            expect(jsonMock.calls).toHaveLength(1);
+        });
+
+        test('the json method of response should receive value from handler', async () => {
             request.params = { id: TEST_USER.id };
 
             await userController.getUserById(request, response, next);
@@ -147,7 +177,12 @@ describe('User Controller', () => {
             const jsonMock = (response.json as jest.Mock).mock;
             const jsonFirstCall = jsonMock.calls[0];
             const firstCallArgument = jsonFirstCall[0];
-            expect(firstCallArgument).toBe(TEST_USER);
+
+            const getUserByIdMock = (userService.getUserById as jest.Mock).mock;
+            const userServiceResult = await getUserByIdMock.results[0].value;
+            const resultValue = userServiceResult.data!;
+
+            expect(firstCallArgument).toBe(resultValue);
         });
 
         test('should call next function without arguments', async () => {
@@ -164,7 +199,7 @@ describe('User Controller', () => {
         });
 
         test(
-            'in case of error should call next function with one',
+            'in case of error next callback should be called',
             async () => {
                 request.params = { id: 'some' };
 
@@ -172,7 +207,17 @@ describe('User Controller', () => {
 
                 const nextMock = (next as jest.Mock).mock;
                 expect(nextMock.calls).toHaveLength(1);
+            },
+        );
 
+        test(
+            'in case of error should pass instance of ErrorHandlerData to next callback ',
+            async () => {
+                request.params = { id: 'some' };
+
+                await userController.getUserById(request, response, next);
+
+                const nextMock = (next as jest.Mock).mock;
                 const nextMockFirstCall = nextMock.calls[0];
                 const firstCallArgument = nextMockFirstCall[0];
                 expect(firstCallArgument).toBeInstanceOf(ErrorHandlerData);
@@ -180,7 +225,7 @@ describe('User Controller', () => {
         );
 
         test(
-            'in case of error should not call status and json response methods',
+            'in case of error the status method of response should not be called',
             async () => {
                 request.params = { id: 'some' };
 
@@ -188,6 +233,15 @@ describe('User Controller', () => {
 
                 const statusMock = (response.status as jest.Mock).mock;
                 expect(statusMock.calls).toHaveLength(0);
+            },
+        );
+
+        test(
+            'in case of error the json method of response should not be called',
+            async () => {
+                request.params = { id: 'some' };
+
+                await userController.getUserById(request, response, next);
 
                 const jsonMock = (response.json as jest.Mock).mock;
                 expect(jsonMock.calls).toHaveLength(0);
