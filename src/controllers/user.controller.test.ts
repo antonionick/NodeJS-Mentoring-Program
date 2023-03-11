@@ -10,8 +10,11 @@ import { UserController } from '@controllers/user.controller';
 import { ErrorHandlerData } from '@common/models/error-handler-data.models';
 
 describe('User Controller', () => {
-    let databaseProvider: IDatabaseProvider;
-    let validatorProvider: IValidatorProvider;
+    const ERROR_TEXT = 'test error text';
+
+    const databaseProvider: IDatabaseProvider = Object.freeze({}) as unknown as IDatabaseProvider;
+    const validatorProvider: IValidatorProvider = Object.freeze({}) as unknown as IValidatorProvider;
+
     let authenticator: PassportAuthenticator;
 
     let userService: UserService;
@@ -21,20 +24,6 @@ describe('User Controller', () => {
     let request: Request;
     let response: Response;
     let next: NextFunction;
-
-    beforeAll(() => {
-        databaseProvider = {
-            getUserDatabase: () => null,
-            getGroupDatabase: () => null,
-        } as unknown as IDatabaseProvider;
-        databaseProvider = Object.freeze(databaseProvider);
-
-        validatorProvider = {
-            getUserValidator: () => null,
-            getGroupValidator: () => null,
-        } as unknown as IValidatorProvider;
-        validatorProvider = Object.freeze(validatorProvider);
-    });
 
     beforeEach(() => {
         authenticator = {
@@ -73,7 +62,7 @@ describe('User Controller', () => {
                 if (login && password) {
                     return `${login}${password}`;
                 }
-                throw new Error('Test error text');
+                throw new Error(ERROR_TEXT);
             };
             authenticator.login = jest.fn(loginTestHandler);
         });
@@ -135,7 +124,7 @@ describe('User Controller', () => {
         });
 
         test(
-            'in case of error next callback should be called with an error',
+            'in case of error next callback should be called with it',
             async () => {
                 request.user = ERROR_TEST_USER_CREDENTIALS;
 
@@ -143,6 +132,10 @@ describe('User Controller', () => {
 
                 const nextMock = (next as jest.Mock).mock;
                 expect(nextMock.calls).toHaveLength(1);
+
+                const firstCall = nextMock.calls[0];
+                const argumentOfCall = firstCall[0];
+                expect(argumentOfCall).toBeTruthy();
             },
         );
 
@@ -186,26 +179,27 @@ describe('User Controller', () => {
     });
 
     describe('getUserById method', () => {
-        const ERROR_TEST_USER_ID = 'some';
-        const TEST_USER: User = new User({
+        const TEST_USER = new User({
             id: 'user_id',
             login: 'login1@mail.com',
             password: 'Password123',
             age: 15,
         });
+        const TEST_PARAMS = { id: TEST_USER.id };
+        const ERROR_TEST_PARAMS = { id: 'some' };
 
         beforeEach(() => {
-            const getUserByIdHandler = async (id: string) => {
+            const getUserByIdHandler = async (id: string): Promise<UserServiceResult<User>> => {
                 if (id === TEST_USER.id) {
                     return new UserServiceResult<User>({ data: TEST_USER });
                 }
-                return new UserServiceResult<User>({ error: 'test error text' });
+                return new UserServiceResult<User>({ error: ERROR_TEXT });
             };
             userService.getUserById = jest.fn(getUserByIdHandler);
         });
 
         test('should pass parameters from request to handler', async () => {
-            request.params = { id: TEST_USER.id };
+            request.params = TEST_PARAMS;
 
             await userController.getUserById(request, response, next);
 
@@ -216,7 +210,7 @@ describe('User Controller', () => {
         });
 
         test(`should call the status method of response`, async () => {
-            request.params = { id: TEST_USER.id };
+            request.params = TEST_PARAMS;
 
             await userController.getUserById(request, response, next);
 
@@ -225,7 +219,7 @@ describe('User Controller', () => {
         });
 
         test(`the status method of response should be ${StatusCodes.OK}`, async () => {
-            request.params = { id: TEST_USER.id };
+            request.params = TEST_PARAMS;
 
             await userController.getUserById(request, response, next);
 
@@ -236,7 +230,7 @@ describe('User Controller', () => {
         });
 
         test('should call the json method of response', async () => {
-            request.params = { id: TEST_USER.id };
+            request.params = TEST_PARAMS;
 
             await userController.getUserById(request, response, next);
 
@@ -245,7 +239,7 @@ describe('User Controller', () => {
         });
 
         test('the json method of response should receive value from handler', async () => {
-            request.params = { id: TEST_USER.id };
+            request.params = TEST_PARAMS;
 
             await userController.getUserById(request, response, next);
 
@@ -261,7 +255,7 @@ describe('User Controller', () => {
         });
 
         test('should call next function without arguments', async () => {
-            request.params = { id: TEST_USER.id };
+            request.params = TEST_PARAMS;
 
             await userController.getUserById(request, response, next);
 
@@ -274,21 +268,25 @@ describe('User Controller', () => {
         });
 
         test(
-            'in case of error next callback should be called with an error',
+            'in case of error next callback should be called with it',
             async () => {
-                request.params = { id: ERROR_TEST_USER_ID };
+                request.params = ERROR_TEST_PARAMS;
 
                 await userController.getUserById(request, response, next);
 
                 const nextMock = (next as jest.Mock).mock;
                 expect(nextMock.calls).toHaveLength(1);
+
+                const firstCall = nextMock.calls[0];
+                const argumentOfCall = firstCall[0];
+                expect(argumentOfCall).toBeTruthy();
             },
         );
 
         test(
             'in case of error should pass instance of ErrorHandlerData to next callback ',
             async () => {
-                request.params = { id: ERROR_TEST_USER_ID };
+                request.params = ERROR_TEST_PARAMS;
 
                 await userController.getUserById(request, response, next);
 
@@ -302,7 +300,7 @@ describe('User Controller', () => {
         test(
             'in case of error the status method of response should not be called',
             async () => {
-                request.params = { id: ERROR_TEST_USER_ID };
+                request.params = ERROR_TEST_PARAMS;
 
                 await userController.getUserById(request, response, next);
 
@@ -314,7 +312,7 @@ describe('User Controller', () => {
         test(
             'in case of error the json method of response should not be called',
             async () => {
-                request.params = { id: ERROR_TEST_USER_ID };
+                request.params = ERROR_TEST_PARAMS;
 
                 await userController.getUserById(request, response, next);
 
@@ -325,7 +323,7 @@ describe('User Controller', () => {
     });
 
     describe('getAutosuggest method', () => {
-        const TEST_USERS: User[] = [
+        const TEST_USERS = [
             new User({
                 id: 'user_id1',
                 login: 'login1@mail.com',
@@ -339,36 +337,36 @@ describe('User Controller', () => {
                 age: 15,
             }),
         ];
+        const TEST_QUERY = { limit: '2', loginSubstring: 'login' };
+        const ERROR_TEST_QUERY = { limit: '2', loginSubstring: 'some' };
 
         beforeEach(() => {
             const getAutosuggestUsersHandler = async (
                 loginSubstring: string,
                 limit: number,
-            ) => {
+            ): Promise<UserServiceResult<User[]>> => {
                 if (TEST_USERS.some(user => user.login.includes(loginSubstring))) {
                     return new UserServiceResult<User[]>({ data: TEST_USERS });
                 }
-                return new UserServiceResult<User[]>({ error: 'test error text' });
+                return new UserServiceResult<User[]>({ error: ERROR_TEXT });
             };
             userService.getAutosuggestUsers = jest.fn(getAutosuggestUsersHandler);
         });
 
         test('should pass parameters from request to handler', async () => {
-            const limit = '2';
-            const loginSubstring = 'login';
-            request.query = { limit, loginSubstring };
+            request.query = TEST_QUERY;
 
             await userController.getAutosuggest(request, response, next);
 
             const getAutosuggestUsersMock = (userService.getAutosuggestUsers as jest.Mock).mock;
             const firstCall = getAutosuggestUsersMock.calls[0];
 
-            expect(firstCall[0]).toBe(loginSubstring);
-            expect(firstCall[1]).toBe(Number(limit));
+            expect(firstCall[0]).toBe(TEST_QUERY.loginSubstring);
+            expect(firstCall[1]).toBe(Number(TEST_QUERY.limit));
         });
 
         test(`should call the status method of response`, async () => {
-            request.query = { limit: '2', loginSubstring: 'login' };
+            request.query = TEST_QUERY;
 
             await userController.getAutosuggest(request, response, next);
 
@@ -377,7 +375,7 @@ describe('User Controller', () => {
         });
 
         test(`the status method of response should be ${StatusCodes.OK}`, async () => {
-            request.query = { limit: '2', loginSubstring: 'login' };
+            request.query = TEST_QUERY;
 
             await userController.getAutosuggest(request, response, next);
 
@@ -388,7 +386,7 @@ describe('User Controller', () => {
         });
 
         test('should call the json method of response', async () => {
-            request.query = { limit: '2', loginSubstring: 'login' };
+            request.query = TEST_QUERY;
 
             await userController.getAutosuggest(request, response, next);
 
@@ -397,7 +395,7 @@ describe('User Controller', () => {
         });
 
         test('the json method of response should receive value from handler', async () => {
-            request.query = { limit: '2', loginSubstring: 'login' };
+            request.query = TEST_QUERY;
 
             await userController.getAutosuggest(request, response, next);
 
@@ -413,7 +411,7 @@ describe('User Controller', () => {
         });
 
         test('should call next function without arguments', async () => {
-            request.query = { limit: '2', loginSubstring: 'login' };
+            request.query = TEST_QUERY;
 
             await userController.getAutosuggest(request, response, next);
 
@@ -426,21 +424,25 @@ describe('User Controller', () => {
         });
 
         test(
-            'in case of error next callback should be called with an error',
+            'in case of error next callback should be called with it',
             async () => {
-                request.query = { limit: '2', loginSubstring: 'some' };
+                request.query = ERROR_TEST_QUERY;
 
                 await userController.getAutosuggest(request, response, next);
 
                 const nextMock = (next as jest.Mock).mock;
                 expect(nextMock.calls).toHaveLength(1);
+
+                const firstCall = nextMock.calls[0];
+                const argumentOfCall = firstCall[0];
+                expect(argumentOfCall).toBeTruthy();
             },
         );
 
         test(
             'in case of error should pass instance of ErrorHandlerData to next callback ',
             async () => {
-                request.query = { limit: '2', loginSubstring: 'some' };
+                request.query = ERROR_TEST_QUERY;
 
                 await userController.getAutosuggest(request, response, next);
 
@@ -454,7 +456,7 @@ describe('User Controller', () => {
         test(
             'in case of error the status method of response should not be called',
             async () => {
-                request.query = { limit: '2', loginSubstring: 'some' };
+                request.query = ERROR_TEST_QUERY;
 
                 await userController.getAutosuggest(request, response, next);
 
@@ -466,7 +468,7 @@ describe('User Controller', () => {
         test(
             'in case of error the json method of response should not be called',
             async () => {
-                request.query = { limit: '2', loginSubstring: 'some' };
+                request.query = ERROR_TEST_QUERY;
 
                 await userController.getAutosuggest(request, response, next);
 
@@ -499,7 +501,7 @@ describe('User Controller', () => {
                         }),
                     });
                 }
-                return new UserServiceResult<User>({ error: 'test error text' });
+                return new UserServiceResult<User>({ error: ERROR_TEXT });
             };
             userService.createUser = jest.fn(createUserHandler);
         });
@@ -574,7 +576,7 @@ describe('User Controller', () => {
         });
 
         test(
-            'in case of error next callback should be called with an error',
+            'in case of error next callback should be called with it',
             async () => {
                 request.body = ERROR_TEST_USER_DATA_TO_CREATE;
 
@@ -582,6 +584,10 @@ describe('User Controller', () => {
 
                 const nextMock = (next as jest.Mock).mock;
                 expect(nextMock.calls).toHaveLength(1);
+
+                const firstCall = nextMock.calls[0];
+                const argumentOfCall = firstCall[0];
+                expect(argumentOfCall).toBeTruthy();
             },
         );
 
@@ -625,7 +631,6 @@ describe('User Controller', () => {
     });
 
     describe('updateUser method', () => {
-        const ERROR_TEST_USER_ID = 'some';
         const TEST_USER = new User({
             id: 'user_id',
             login: 'login123@mail.com',
@@ -640,6 +645,8 @@ describe('User Controller', () => {
             ...TEST_USER,
             ...TEST_USER_DATA_TO_UPDATE,
         });
+        const TEST_PARAMS = { id: TEST_USER.id };
+        const ERROR_TEST_PARAMS = { id: 'some' };
 
         beforeEach(() => {
             const updateUserHandler = async (
@@ -651,14 +658,14 @@ describe('User Controller', () => {
                         data: TEST_UPDATED_USER,
                     });
                 }
-                return new UserServiceResult<User>({ error: 'test error text' });
+                return new UserServiceResult<User>({ error: ERROR_TEXT });
             };
             userService.updateUser = jest.fn(updateUserHandler);
         });
 
         test('should pass parameters from request to handler', async () => {
             request = {
-                params: { id: TEST_USER.id },
+                params: TEST_PARAMS,
                 body: TEST_USER_DATA_TO_UPDATE,
             } as unknown as Request;
 
@@ -673,7 +680,7 @@ describe('User Controller', () => {
 
         test(`should call the status method of response`, async () => {
             request = {
-                params: { id: TEST_USER.id },
+                params: TEST_PARAMS,
                 body: TEST_USER_DATA_TO_UPDATE,
             } as unknown as Request;
 
@@ -685,7 +692,7 @@ describe('User Controller', () => {
 
         test(`the status method of response should be ${StatusCodes.OK}`, async () => {
             request = {
-                params: { id: TEST_USER.id },
+                params: TEST_PARAMS,
                 body: TEST_USER_DATA_TO_UPDATE,
             } as unknown as Request;
 
@@ -699,7 +706,7 @@ describe('User Controller', () => {
 
         test('should call the json method of response', async () => {
             request = {
-                params: { id: TEST_USER.id },
+                params: TEST_PARAMS,
                 body: TEST_USER_DATA_TO_UPDATE,
             } as unknown as Request;
 
@@ -711,7 +718,7 @@ describe('User Controller', () => {
 
         test('the json method of response should receive value from handler', async () => {
             request = {
-                params: { id: TEST_USER.id },
+                params: TEST_PARAMS,
                 body: TEST_USER_DATA_TO_UPDATE,
             } as unknown as Request;
 
@@ -730,7 +737,7 @@ describe('User Controller', () => {
 
         test('should call next function without arguments', async () => {
             request = {
-                params: { id: TEST_USER.id },
+                params: TEST_PARAMS,
                 body: TEST_USER_DATA_TO_UPDATE,
             } as unknown as Request;
 
@@ -745,10 +752,10 @@ describe('User Controller', () => {
         });
 
         test(
-            'in case of error next callback should be called with an error',
+            'in case of error next callback should be called with it',
             async () => {
                 request = {
-                    params: { id: TEST_USER.id },
+                    params: ERROR_TEST_PARAMS,
                     body: TEST_USER_DATA_TO_UPDATE,
                 } as unknown as Request;
 
@@ -756,6 +763,10 @@ describe('User Controller', () => {
 
                 const nextMock = (next as jest.Mock).mock;
                 expect(nextMock.calls).toHaveLength(1);
+
+                const firstCall = nextMock.calls[0];
+                const argumentOfCall = firstCall[0];
+                expect(argumentOfCall).toBeTruthy();
             },
         );
 
@@ -763,7 +774,7 @@ describe('User Controller', () => {
             'in case of error should pass instance of ErrorHandlerData to next callback ',
             async () => {
                 request = {
-                    params: { id: ERROR_TEST_USER_ID },
+                    params: ERROR_TEST_PARAMS,
                     body: TEST_USER_DATA_TO_UPDATE,
                 } as unknown as Request;
 
@@ -780,7 +791,7 @@ describe('User Controller', () => {
             'in case of error the status method of response should not be called',
             async () => {
                 request = {
-                    params: { id: ERROR_TEST_USER_ID },
+                    params: ERROR_TEST_PARAMS,
                     body: TEST_USER_DATA_TO_UPDATE,
                 } as unknown as Request;
 
@@ -795,7 +806,7 @@ describe('User Controller', () => {
             'in case of error the json method of response should not be called',
             async () => {
                 request = {
-                    params: { id: ERROR_TEST_USER_ID },
+                    params: ERROR_TEST_PARAMS,
                     body: TEST_USER_DATA_TO_UPDATE,
                 } as unknown as Request;
 
@@ -808,13 +819,14 @@ describe('User Controller', () => {
     });
 
     describe('deleteUser method', () => {
-        const ERROR_TEST_USER_ID = 'some';
         const TEST_USER = new User({
             id: 'user_id',
             login: 'login123@mail.com',
             password: 'Password123',
             age: 15,
         });
+        const TEST_PARAMS = { id: TEST_USER.id };
+        const ERROR_TEST_PARAMS = { id: 'some' };
 
         beforeEach(() => {
             const deleteUserHandler = async (
@@ -823,13 +835,13 @@ describe('User Controller', () => {
                 if (id === TEST_USER.id) {
                     return new UserServiceResult<boolean>({ data: true });
                 }
-                return new UserServiceResult<boolean>({ error: 'test error text' });
+                return new UserServiceResult<boolean>({ error: ERROR_TEXT });
             };
             userService.deleteUser = jest.fn(deleteUserHandler);
         });
 
         test('should pass parameters from request to handler', async () => {
-            request.params = { id: TEST_USER.id };
+            request.params = TEST_PARAMS;
 
             await userController.deleteUser(request, response, next);
 
@@ -840,7 +852,7 @@ describe('User Controller', () => {
         });
 
         test(`should call the status method of response`, async () => {
-            request.params = { id: TEST_USER.id };
+            request.params = TEST_PARAMS;
 
             await userController.deleteUser(request, response, next);
 
@@ -849,7 +861,7 @@ describe('User Controller', () => {
         });
 
         test(`the status method of response should be ${StatusCodes.OK}`, async () => {
-            request.params = { id: TEST_USER.id };
+            request.params = TEST_PARAMS;
 
             await userController.deleteUser(request, response, next);
 
@@ -860,7 +872,7 @@ describe('User Controller', () => {
         });
 
         test('should call the send method of response', async () => {
-            request.params = { id: TEST_USER.id };
+            request.params = TEST_PARAMS;
 
             await userController.deleteUser(request, response, next);
 
@@ -869,7 +881,7 @@ describe('User Controller', () => {
         });
 
         test('the send method of response should receive value from handler', async () => {
-            request.params = { id: TEST_USER.id };
+            request.params = TEST_PARAMS;
 
             await userController.deleteUser(request, response, next);
 
@@ -885,7 +897,7 @@ describe('User Controller', () => {
         });
 
         test('should call next function without arguments', async () => {
-            request.params = { id: TEST_USER.id };
+            request.params = TEST_PARAMS;
 
             await userController.deleteUser(request, response, next);
 
@@ -898,21 +910,25 @@ describe('User Controller', () => {
         });
 
         test(
-            'in case of error next callback should be called with an error',
+            'in case of error next callback should be called with it',
             async () => {
-                request.params = { id: ERROR_TEST_USER_ID };
+                request.params = ERROR_TEST_PARAMS;
 
                 await userController.deleteUser(request, response, next);
 
                 const nextMock = (next as jest.Mock).mock;
                 expect(nextMock.calls).toHaveLength(1);
+
+                const firstCall = nextMock.calls[0];
+                const argumentOfCall = firstCall[0];
+                expect(argumentOfCall).toBeTruthy();
             },
         );
 
         test(
             'in case of error should pass instance of ErrorHandlerData to next callback ',
             async () => {
-                request.params = { id: ERROR_TEST_USER_ID };
+                request.params = ERROR_TEST_PARAMS;
 
                 await userController.deleteUser(request, response, next);
 
@@ -926,7 +942,7 @@ describe('User Controller', () => {
         test(
             'in case of error the status method of response should not be called',
             async () => {
-                request.params = { id: ERROR_TEST_USER_ID };
+                request.params = ERROR_TEST_PARAMS;
 
                 await userController.deleteUser(request, response, next);
 
@@ -938,7 +954,7 @@ describe('User Controller', () => {
         test(
             'in case of error the send method of response should not be called',
             async () => {
-                request.params = { id: ERROR_TEST_USER_ID };
+                request.params = ERROR_TEST_PARAMS;
 
                 await userController.deleteUser(request, response, next);
 
@@ -951,36 +967,36 @@ describe('User Controller', () => {
     describe('addUsersToGroup method', () => {
         const TEST_USER_IDS_LIST = ['user_id_1', 'user_id_2', 'user_id_3'];
         const TEST_USER_IDS = TEST_USER_IDS_LIST.join(',');
-        const TEST_GROUP_ID = 'group_id';
-        const ERROR_TEST_GROUP_ID = 'some'
+        const TEST_QUERY = { usersIds: TEST_USER_IDS_LIST, groupId: 'group_id' };
+        const ERROR_TEST_QUERY = { usersIds: TEST_USER_IDS, groupId: 'some' };
 
         beforeEach(() => {
             const addUsersToGroupHandler = async (
                 groupId: string,
                 usersIds: string[],
             ): Promise<UserServiceResult<boolean>> => {
-                if (groupId === TEST_GROUP_ID) {
+                if (groupId === TEST_QUERY.groupId) {
                     return new UserServiceResult<boolean>({ data: true });
                 }
-                return new UserServiceResult<boolean>({ error: 'test error text' });
+                return new UserServiceResult<boolean>({ error: ERROR_TEXT });
             };
             userService.addUsersToGroup = jest.fn(addUsersToGroupHandler);
         });
 
         test('should pass parameters from request to handler', async () => {
-            request.query = { usersIds: TEST_USER_IDS_LIST, groupId: TEST_GROUP_ID };
+            request.query = TEST_QUERY;
 
             await userController.addUsersToGroup(request, response, next);
 
             const addUsersToGroupMock = (userService.addUsersToGroup as jest.Mock).mock;
             const firstCall = addUsersToGroupMock.calls[0];
 
-            expect(firstCall[0]).toBe(TEST_GROUP_ID);
+            expect(firstCall[0]).toBe(TEST_QUERY.groupId);
             expect(firstCall[1]).toEqual(TEST_USER_IDS_LIST);
         });
 
         test('in case usersIds is a string should transform it to an array', async () => {
-            request.query = { usersIds: TEST_USER_IDS, groupId: TEST_GROUP_ID };
+            request.query = TEST_QUERY;
 
             await userController.addUsersToGroup(request, response, next);
 
@@ -991,7 +1007,7 @@ describe('User Controller', () => {
         });
 
         test(`should call the status method of response`, async () => {
-            request.query = { usersIds: TEST_USER_IDS, groupId: TEST_GROUP_ID };
+            request.query = TEST_QUERY;
 
             await userController.addUsersToGroup(request, response, next);
 
@@ -1000,7 +1016,7 @@ describe('User Controller', () => {
         });
 
         test(`the status method of response should be ${StatusCodes.OK}`, async () => {
-            request.query = { usersIds: TEST_USER_IDS, groupId: TEST_GROUP_ID };
+            request.query = TEST_QUERY;
 
             await userController.addUsersToGroup(request, response, next);
 
@@ -1011,7 +1027,7 @@ describe('User Controller', () => {
         });
 
         test('should call the send method of response', async () => {
-            request.query = { usersIds: TEST_USER_IDS, groupId: TEST_GROUP_ID };
+            request.query = TEST_QUERY;
 
             await userController.addUsersToGroup(request, response, next);
 
@@ -1020,7 +1036,7 @@ describe('User Controller', () => {
         });
 
         test('the send method of response should receive value from handler', async () => {
-            request.query = { usersIds: TEST_USER_IDS, groupId: TEST_GROUP_ID };
+            request.query = TEST_QUERY;
 
             await userController.addUsersToGroup(request, response, next);
 
@@ -1036,7 +1052,7 @@ describe('User Controller', () => {
         });
 
         test('should call next function without arguments', async () => {
-            request.query = { usersIds: TEST_USER_IDS, groupId: TEST_GROUP_ID };
+            request.query = TEST_QUERY;
 
             await userController.addUsersToGroup(request, response, next);
 
@@ -1049,21 +1065,25 @@ describe('User Controller', () => {
         });
 
         test(
-            'in case of error next callback should be called with an error',
+            'in case of error next callback should be called with it',
             async () => {
-                request.query = { usersIds: TEST_USER_IDS, groupId: ERROR_TEST_GROUP_ID };
+                request.query = ERROR_TEST_QUERY;
 
                 await userController.addUsersToGroup(request, response, next);
 
                 const nextMock = (next as jest.Mock).mock;
                 expect(nextMock.calls).toHaveLength(1);
+
+                const firstCall = nextMock.calls[0];
+                const argumentOfCall = firstCall[0];
+                expect(argumentOfCall).toBeTruthy();
             },
         );
 
         test(
             'in case of error should pass instance of ErrorHandlerData to next callback ',
             async () => {
-                request.query = { usersIds: TEST_USER_IDS, groupId: ERROR_TEST_GROUP_ID };
+                request.query = ERROR_TEST_QUERY;
 
                 await userController.addUsersToGroup(request, response, next);
 
@@ -1077,7 +1097,7 @@ describe('User Controller', () => {
         test(
             'in case of error the status method of response should not be called',
             async () => {
-                request.query = { usersIds: TEST_USER_IDS, groupId: ERROR_TEST_GROUP_ID };
+                request.query = ERROR_TEST_QUERY;
 
                 await userController.addUsersToGroup(request, response, next);
 
@@ -1089,7 +1109,7 @@ describe('User Controller', () => {
         test(
             'in case of error the send method of response should not be called',
             async () => {
-                request.query = { usersIds: TEST_USER_IDS, groupId: ERROR_TEST_GROUP_ID };
+                request.query = ERROR_TEST_QUERY;
 
                 await userController.addUsersToGroup(request, response, next);
 
