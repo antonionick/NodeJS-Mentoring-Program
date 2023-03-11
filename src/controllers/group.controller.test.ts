@@ -9,8 +9,10 @@ import type { GroupServiceProvider } from '@components/group/group-service.provi
 import { GroupServiceResult, IGroupDataToCreate, IGroupDataToUpdate, GroupPermission, Group } from '@components/group/group.models';
 
 describe('Group Controller', () => {
-    let databaseProvider: IDatabaseProvider;
-    let validatorProvider: IValidatorProvider;
+    const ERROR_TEXT = 'test error text';
+
+    const databaseProvider: IDatabaseProvider = Object.freeze({}) as unknown as IDatabaseProvider;
+    const validatorProvider: IValidatorProvider = Object.freeze({}) as unknown as IValidatorProvider;
 
     let groupService: GroupService;
     let groupServiceProvider: GroupServiceProvider;
@@ -19,20 +21,6 @@ describe('Group Controller', () => {
     let request: Request;
     let response: Response;
     let next: NextFunction;
-
-    beforeAll(() => {
-        databaseProvider = {
-            getUserDatabase: () => null,
-            getGroupDatabase: () => null,
-        } as unknown as IDatabaseProvider;
-        databaseProvider = Object.freeze(databaseProvider);
-
-        validatorProvider = {
-            getUserValidator: () => null,
-            getGroupValidator: () => null,
-        } as unknown as IValidatorProvider;
-        validatorProvider = Object.freeze(validatorProvider);
-    });
 
     beforeEach(() => {
         groupService = {} as unknown as GroupService;
@@ -54,25 +42,26 @@ describe('Group Controller', () => {
     });
 
     describe('getGroupById method', () => {
-        const ERROR_TEST_GROUP_ID = 'some';
         const TEST_GROUP = new Group({
             id: 'group_id',
             name: 'group_name',
             permissions: [GroupPermission.Read],
         });
+        const TEST_PARAMS = { id: TEST_GROUP.id };
+        const ERROR_TEST_PARAMS = { id: 'some' };
 
         beforeEach(() => {
-            const getGroupByIdHandler = async (id: string) => {
+            const getGroupByIdHandler = async (id: string): Promise<GroupServiceResult<Group>> => {
                 if (id === TEST_GROUP.id) {
                     return new GroupServiceResult<Group>({ data: TEST_GROUP });
                 }
-                return new GroupServiceResult<Group>({ error: 'test error text' });
+                return new GroupServiceResult<Group>({ error: ERROR_TEXT });
             }
             groupService.getGroupById = jest.fn(getGroupByIdHandler);
         });
 
         test('should pass parameters from request to handler', async () => {
-            request.params = { id: TEST_GROUP.id };
+            request.params = TEST_PARAMS;
 
             await groupController.getGroupById(request, response, next);
 
@@ -83,7 +72,7 @@ describe('Group Controller', () => {
         });
 
         test(`should call the status method of response`, async () => {
-            request.params = { id: TEST_GROUP.id };
+            request.params = TEST_PARAMS;
 
             await groupController.getGroupById(request, response, next);
 
@@ -92,7 +81,7 @@ describe('Group Controller', () => {
         });
 
         test(`the status method of response should be ${StatusCodes.OK}`, async () => {
-            request.params = { id: TEST_GROUP.id };
+            request.params = TEST_PARAMS;
 
             await groupController.getGroupById(request, response, next);
 
@@ -103,7 +92,7 @@ describe('Group Controller', () => {
         });
 
         test('should call the json method of response', async () => {
-            request.params = { id: TEST_GROUP.id };
+            request.params = TEST_PARAMS;
 
             await groupController.getGroupById(request, response, next);
 
@@ -112,7 +101,7 @@ describe('Group Controller', () => {
         });
 
         test('the json method of response should receive value from handler', async () => {
-            request.params = { id: TEST_GROUP.id };
+            request.params = TEST_PARAMS;
 
             await groupController.getGroupById(request, response, next);
 
@@ -128,7 +117,7 @@ describe('Group Controller', () => {
         });
 
         test('should call next function without arguments', async () => {
-            request.params = { id: TEST_GROUP.id };
+            request.params = TEST_PARAMS;
 
             await groupController.getGroupById(request, response, next);
 
@@ -141,21 +130,25 @@ describe('Group Controller', () => {
         });
 
         test(
-            'in case of error next callback should be called with an error',
+            'in case of error next callback should be called with it',
             async () => {
-                request.params = { id: ERROR_TEST_GROUP_ID };
+                request.params = ERROR_TEST_PARAMS;
 
                 await groupController.getGroupById(request, response, next);
 
                 const nextMock = (next as jest.Mock).mock;
                 expect(nextMock.calls).toHaveLength(1);
+
+                const firstCall = nextMock.calls[0];
+                const argumentOfCall = firstCall[0];
+                expect(argumentOfCall).toBeTruthy();
             },
         );
 
         test(
             'in case of error should pass instance of ErrorHandlerData to next callback ',
             async () => {
-                request.params = { id: ERROR_TEST_GROUP_ID };
+                request.params = ERROR_TEST_PARAMS;
 
                 await groupController.getGroupById(request, response, next);
 
@@ -169,7 +162,7 @@ describe('Group Controller', () => {
         test(
             'in case of error the status method of response should not be called',
             async () => {
-                request.params = { id: ERROR_TEST_GROUP_ID };
+                request.params = ERROR_TEST_PARAMS;
 
                 await groupController.getGroupById(request, response, next);
 
@@ -181,7 +174,7 @@ describe('Group Controller', () => {
         test(
             'in case of error the json method of response should not be called',
             async () => {
-                request.params = { id: ERROR_TEST_GROUP_ID };
+                request.params = ERROR_TEST_PARAMS;
 
                 await groupController.getGroupById(request, response, next);
 
@@ -192,7 +185,7 @@ describe('Group Controller', () => {
     });
 
     describe('getAllGroups', () => {
-        const TEST_GROUPS: Group[] = [
+        const TEST_GROUPS = [
             new Group({
                 id: 'group_id',
                 name: 'group_name',
@@ -206,13 +199,13 @@ describe('Group Controller', () => {
         ];
 
         const applyGetAllGroupsErrorApproach = () => {
-            const getAllGroupsHandler = async () =>
-                new GroupServiceResult<Group[]>({ error: 'test error text' });
+            const getAllGroupsHandler = async (): Promise<GroupServiceResult<Group[]>> =>
+                new GroupServiceResult<Group[]>({ error: ERROR_TEXT });
             groupService.getAllGroups = jest.fn(getAllGroupsHandler);
         };
 
         beforeEach(() => {
-            const getAllGroupsHandler = async () =>
+            const getAllGroupsHandler = async (): Promise<GroupServiceResult<Group[]>> =>
                 new GroupServiceResult<Group[]>({ data: TEST_GROUPS });
             groupService.getAllGroups = jest.fn(getAllGroupsHandler);
         });
@@ -266,7 +259,7 @@ describe('Group Controller', () => {
         });
 
         test(
-            'in case of error next callback should be called with an error',
+            'in case of error next callback should be called with it',
             async () => {
                 applyGetAllGroupsErrorApproach();
 
@@ -274,6 +267,10 @@ describe('Group Controller', () => {
 
                 const nextMock = (next as jest.Mock).mock;
                 expect(nextMock.calls).toHaveLength(1);
+
+                const firstCall = nextMock.calls[0];
+                const argumentOfCall = firstCall[0];
+                expect(argumentOfCall).toBeTruthy();
             },
         );
 
@@ -338,7 +335,7 @@ describe('Group Controller', () => {
                         }),
                     });
                 }
-                return new GroupServiceResult<Group>({ error: 'test error text' });
+                return new GroupServiceResult<Group>({ error: ERROR_TEXT });
             };
             groupService.createGroup = jest.fn(createGroupHandler);
         });
@@ -413,7 +410,7 @@ describe('Group Controller', () => {
         });
 
         test(
-            'in case of error next callback should be called with an error',
+            'in case of error next callback should be called with it',
             async () => {
                 request.body = ERROR_TEST_GROUP_DATA_TO_CREATE;
 
@@ -421,6 +418,10 @@ describe('Group Controller', () => {
 
                 const nextMock = (next as jest.Mock).mock;
                 expect(nextMock.calls).toHaveLength(1);
+
+                const firstCall = nextMock.calls[0];
+                const argumentOfCall = firstCall[0];
+                expect(argumentOfCall).toBeTruthy();
             },
         );
 
@@ -464,7 +465,6 @@ describe('Group Controller', () => {
     });
 
     describe('updateGroup method', () => {
-        const ERROR_TEST_GROUP_ID = 'some';
         const TEST_GROUP = new Group({
             id: 'group_id',
             name: 'group_name',
@@ -477,6 +477,8 @@ describe('Group Controller', () => {
             ...TEST_GROUP,
             ...TEST_GROUP_DATA_TO_UPDATE,
         });
+        const TEST_PARAMS = { id: TEST_GROUP.id };
+        const ERROR_TEST_PARAMS = { id: 'some' };
 
         beforeEach(() => {
             const updateGroupHandler = async (
@@ -488,14 +490,14 @@ describe('Group Controller', () => {
                         data: TEST_UPDATED_GROUP,
                     });
                 }
-                return new GroupServiceResult<Group>({ error: 'test error text' });
+                return new GroupServiceResult<Group>({ error: ERROR_TEXT });
             };
             groupService.updateGroup = jest.fn(updateGroupHandler);
         });
 
         test('should pass parameters from request to handler', async () => {
             request = {
-                params: { id: TEST_GROUP.id },
+                params: TEST_PARAMS,
                 body: TEST_GROUP_DATA_TO_UPDATE,
             } as unknown as Request;
 
@@ -510,7 +512,7 @@ describe('Group Controller', () => {
 
         test(`should call the status method of response`, async () => {
             request = {
-                params: { id: TEST_GROUP.id },
+                params: TEST_PARAMS,
                 body: TEST_GROUP_DATA_TO_UPDATE,
             } as unknown as Request;
 
@@ -522,7 +524,7 @@ describe('Group Controller', () => {
 
         test(`the status method of response should be ${StatusCodes.OK}`, async () => {
             request = {
-                params: { id: TEST_GROUP.id },
+                params: TEST_PARAMS,
                 body: TEST_GROUP_DATA_TO_UPDATE,
             } as unknown as Request;
 
@@ -536,7 +538,7 @@ describe('Group Controller', () => {
 
         test('should call the json method of response', async () => {
             request = {
-                params: { id: TEST_GROUP.id },
+                params: TEST_PARAMS,
                 body: TEST_GROUP_DATA_TO_UPDATE,
             } as unknown as Request;
 
@@ -548,7 +550,7 @@ describe('Group Controller', () => {
 
         test('the json method of response should receive value from handler', async () => {
             request = {
-                params: { id: TEST_GROUP.id },
+                params: TEST_PARAMS,
                 body: TEST_GROUP_DATA_TO_UPDATE,
             } as unknown as Request;
 
@@ -567,7 +569,7 @@ describe('Group Controller', () => {
 
         test('should call next function without arguments', async () => {
             request = {
-                params: { id: TEST_GROUP.id },
+                params: TEST_PARAMS,
                 body: TEST_GROUP_DATA_TO_UPDATE,
             } as unknown as Request;
 
@@ -582,10 +584,10 @@ describe('Group Controller', () => {
         });
 
         test(
-            'in case of error next callback should be called with an error',
+            'in case of error next callback should be called with it',
             async () => {
                 request = {
-                    params: { id: TEST_GROUP.id },
+                    params: ERROR_TEST_PARAMS,
                     body: TEST_GROUP_DATA_TO_UPDATE,
                 } as unknown as Request;
 
@@ -593,6 +595,10 @@ describe('Group Controller', () => {
 
                 const nextMock = (next as jest.Mock).mock;
                 expect(nextMock.calls).toHaveLength(1);
+
+                const firstCall = nextMock.calls[0];
+                const argumentOfCall = firstCall[0];
+                expect(argumentOfCall).toBeTruthy();
             },
         );
 
@@ -600,7 +606,7 @@ describe('Group Controller', () => {
             'in case of error should pass instance of ErrorHandlerData to next callback ',
             async () => {
                 request = {
-                    params: { id: ERROR_TEST_GROUP_ID },
+                    params: ERROR_TEST_PARAMS,
                     body: TEST_GROUP_DATA_TO_UPDATE,
                 } as unknown as Request;
 
@@ -617,7 +623,7 @@ describe('Group Controller', () => {
             'in case of error the status method of response should not be called',
             async () => {
                 request = {
-                    params: { id: ERROR_TEST_GROUP_ID },
+                    params: ERROR_TEST_PARAMS,
                     body: TEST_GROUP_DATA_TO_UPDATE,
                 } as unknown as Request;
 
@@ -632,7 +638,7 @@ describe('Group Controller', () => {
             'in case of error the json method of response should not be called',
             async () => {
                 request = {
-                    params: { id: ERROR_TEST_GROUP_ID },
+                    params: ERROR_TEST_PARAMS,
                     body: TEST_GROUP_DATA_TO_UPDATE,
                 } as unknown as Request;
 
@@ -645,12 +651,13 @@ describe('Group Controller', () => {
     });
 
     describe('deleteGroup method', () => {
-        const ERROR_TEST_GROUP_ID = 'some';
         const TEST_GROUP = new Group({
             id: 'group_id',
             name: 'group_name',
             permissions: [GroupPermission.Read],
         });
+        const TEST_PARAMS = { id: TEST_GROUP.id };
+        const ERROR_TEST_PARAMS = { id: 'some' };
 
         beforeEach(() => {
             const deleteGroupHandler = async (
@@ -659,13 +666,13 @@ describe('Group Controller', () => {
                 if (id === TEST_GROUP.id) {
                     return new GroupServiceResult<boolean>({ data: true });
                 }
-                return new GroupServiceResult<boolean>({ error: 'test error text' });
+                return new GroupServiceResult<boolean>({ error: ERROR_TEXT });
             };
             groupService.deleteGroup = jest.fn(deleteGroupHandler);
         });
 
         test('should pass parameters from request to handler', async () => {
-            request.params = { id: TEST_GROUP.id };
+            request.params = TEST_PARAMS;
 
             await groupController.deleteGroup(request, response, next);
 
@@ -676,7 +683,7 @@ describe('Group Controller', () => {
         });
 
         test(`should call the status method of response`, async () => {
-            request.params = { id: TEST_GROUP.id };
+            request.params = TEST_PARAMS;
 
             await groupController.deleteGroup(request, response, next);
 
@@ -685,7 +692,7 @@ describe('Group Controller', () => {
         });
 
         test(`the status method of response should be ${StatusCodes.OK}`, async () => {
-            request.params = { id: TEST_GROUP.id };
+            request.params = TEST_PARAMS;
 
             await groupController.deleteGroup(request, response, next);
 
@@ -696,7 +703,7 @@ describe('Group Controller', () => {
         });
 
         test('should call the send method of response', async () => {
-            request.params = { id: TEST_GROUP.id };
+            request.params = TEST_PARAMS;
 
             await groupController.deleteGroup(request, response, next);
 
@@ -705,7 +712,7 @@ describe('Group Controller', () => {
         });
 
         test('the send method of response should receive value from handler', async () => {
-            request.params = { id: TEST_GROUP.id };
+            request.params = TEST_PARAMS;
 
             await groupController.deleteGroup(request, response, next);
 
@@ -721,7 +728,7 @@ describe('Group Controller', () => {
         });
 
         test('should call next function without arguments', async () => {
-            request.params = { id: TEST_GROUP.id };
+            request.params = TEST_PARAMS;
 
             await groupController.deleteGroup(request, response, next);
 
@@ -734,21 +741,25 @@ describe('Group Controller', () => {
         });
 
         test(
-            'in case of error next callback should be called with an error',
+            'in case of error next callback should be called with it',
             async () => {
-                request.params = { id: ERROR_TEST_GROUP_ID };
+                request.params = ERROR_TEST_PARAMS;
 
                 await groupController.deleteGroup(request, response, next);
 
                 const nextMock = (next as jest.Mock).mock;
                 expect(nextMock.calls).toHaveLength(1);
+
+                const firstCall = nextMock.calls[0];
+                const argumentOfCall = firstCall[0];
+                expect(argumentOfCall).toBeTruthy();
             },
         );
 
         test(
             'in case of error should pass instance of ErrorHandlerData to next callback ',
             async () => {
-                request.params = { id: ERROR_TEST_GROUP_ID };
+                request.params = ERROR_TEST_PARAMS;
 
                 await groupController.deleteGroup(request, response, next);
 
@@ -762,7 +773,7 @@ describe('Group Controller', () => {
         test(
             'in case of error the status method of response should not be called',
             async () => {
-                request.params = { id: ERROR_TEST_GROUP_ID };
+                request.params = ERROR_TEST_PARAMS;
 
                 await groupController.deleteGroup(request, response, next);
 
@@ -774,7 +785,7 @@ describe('Group Controller', () => {
         test(
             'in case of error the send method of response should not be called',
             async () => {
-                request.params = { id: ERROR_TEST_GROUP_ID };
+                request.params = ERROR_TEST_PARAMS;
 
                 await groupController.deleteGroup(request, response, next);
 
