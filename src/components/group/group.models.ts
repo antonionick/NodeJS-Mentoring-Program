@@ -1,7 +1,6 @@
 import type { LogInfo } from '@common/models/log-info.models';
 import { EnumUtils } from '@common/utils/enum-utils';
 import { Initializable } from '@common/utils/initializable';
-import { omit } from 'lodash';
 
 export interface IGroupDataToCreate {
     name: string;

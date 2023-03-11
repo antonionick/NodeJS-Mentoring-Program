@@ -462,4 +462,185 @@ describe('Group Controller', () => {
             },
         );
     });
+
+    describe('updateGroup method', () => {
+        const ERROR_TEST_GROUP_ID = 'some';
+        const TEST_GROUP = new Group({
+            id: 'group_id',
+            name: 'group_name',
+            permissions: [GroupPermission.Read],
+        });
+        const TEST_GROUP_DATA_TO_UPDATE: IGroupDataToUpdate = {
+            permissions: [GroupPermission.Read, GroupPermission.Write],
+        };
+        const TEST_UPDATED_GROUP = new Group({
+            ...TEST_GROUP,
+            ...TEST_GROUP_DATA_TO_UPDATE,
+        });
+
+        beforeEach(() => {
+            const updateGroupHandler = async (
+                id: string,
+                groupData: IGroupDataToUpdate,
+            ): Promise<GroupServiceResult<Group>> => {
+                if (id === TEST_GROUP.id) {
+                    return new GroupServiceResult<Group>({
+                        data: TEST_UPDATED_GROUP,
+                    });
+                }
+                return new GroupServiceResult<Group>({ error: 'test error text' });
+            };
+            groupService.updateGroup = jest.fn(updateGroupHandler);
+        });
+
+        test('should pass parameters from request to handler', async () => {
+            request = {
+                params: { id: TEST_GROUP.id },
+                body: TEST_GROUP_DATA_TO_UPDATE,
+            } as unknown as Request;
+
+            await groupController.updateGroup(request, response, next);
+
+            const updateGroupMock = (groupService.updateGroup as jest.Mock).mock;
+            const firstCall = updateGroupMock.calls[0];
+
+            expect(firstCall[0]).toBe(TEST_GROUP.id);
+            expect(firstCall[1]).toEqual(TEST_GROUP_DATA_TO_UPDATE);
+        });
+
+        test(`should call the status method of response`, async () => {
+            request = {
+                params: { id: TEST_GROUP.id },
+                body: TEST_GROUP_DATA_TO_UPDATE,
+            } as unknown as Request;
+
+            await groupController.updateGroup(request, response, next);
+
+            const statusMock = (response.status as jest.Mock).mock;
+            expect(statusMock.calls).toHaveLength(1);
+        });
+
+        test(`the status method of response should be ${StatusCodes.OK}`, async () => {
+            request = {
+                params: { id: TEST_GROUP.id },
+                body: TEST_GROUP_DATA_TO_UPDATE,
+            } as unknown as Request;
+
+            await groupController.updateGroup(request, response, next);
+
+            const statusMock = (response.status as jest.Mock).mock;
+            const statusFirstCall = statusMock.calls[0];
+            const firstCallArgument = statusFirstCall[0];
+            expect(firstCallArgument).toBe(StatusCodes.OK);
+        });
+
+        test('should call the json method of response', async () => {
+            request = {
+                params: { id: TEST_GROUP.id },
+                body: TEST_GROUP_DATA_TO_UPDATE,
+            } as unknown as Request;
+
+            await groupController.updateGroup(request, response, next);
+
+            const jsonMock = (response.json as jest.Mock).mock;
+            expect(jsonMock.calls).toHaveLength(1);
+        });
+
+        test('the json method of response should receive value from handler', async () => {
+            request = {
+                params: { id: TEST_GROUP.id },
+                body: TEST_GROUP_DATA_TO_UPDATE,
+            } as unknown as Request;
+
+            await groupController.updateGroup(request, response, next);
+
+            const jsonMock = (response.json as jest.Mock).mock;
+            const jsonFirstCall = jsonMock.calls[0];
+            const firstCallArgument = jsonFirstCall[0];
+
+            const updateGroupMock = (groupService.updateGroup as jest.Mock).mock;
+            const groupServiceResult = await updateGroupMock.results[0].value;
+            const resultValue = groupServiceResult.data!;
+
+            expect(firstCallArgument).toBe(resultValue);
+        });
+
+        test('should call next function without arguments', async () => {
+            request = {
+                params: { id: TEST_GROUP.id },
+                body: TEST_GROUP_DATA_TO_UPDATE,
+            } as unknown as Request;
+
+            await groupController.updateGroup(request, response, next);
+
+            const nextMock = (next as jest.Mock).mock;
+            expect(nextMock.calls).toHaveLength(1);
+
+            const nextMockFirstCall = nextMock.calls[0];
+            const firstCallArgument = nextMockFirstCall[0];
+            expect(firstCallArgument).toBe(undefined);
+        });
+
+        test(
+            'in case of error next callback should be called with an error',
+            async () => {
+                request = {
+                    params: { id: TEST_GROUP.id },
+                    body: TEST_GROUP_DATA_TO_UPDATE,
+                } as unknown as Request;
+
+                await groupController.updateGroup(request, response, next);
+
+                const nextMock = (next as jest.Mock).mock;
+                expect(nextMock.calls).toHaveLength(1);
+            },
+        );
+
+        test(
+            'in case of error should pass instance of ErrorHandlerData to next callback ',
+            async () => {
+                request = {
+                    params: { id: ERROR_TEST_GROUP_ID },
+                    body: TEST_GROUP_DATA_TO_UPDATE,
+                } as unknown as Request;
+
+                await groupController.updateGroup(request, response, next);
+
+                const nextMock = (next as jest.Mock).mock;
+                const nextMockFirstCall = nextMock.calls[0];
+                const firstCallArgument = nextMockFirstCall[0];
+                expect(firstCallArgument).toBeInstanceOf(ErrorHandlerData);
+            },
+        );
+
+        test(
+            'in case of error the status method of response should not be called',
+            async () => {
+                request = {
+                    params: { id: ERROR_TEST_GROUP_ID },
+                    body: TEST_GROUP_DATA_TO_UPDATE,
+                } as unknown as Request;
+
+                await groupController.updateGroup(request, response, next);
+
+                const statusMock = (response.status as jest.Mock).mock;
+                expect(statusMock.calls).toHaveLength(0);
+            },
+        );
+
+        test(
+            'in case of error the json method of response should not be called',
+            async () => {
+                request = {
+                    params: { id: ERROR_TEST_GROUP_ID },
+                    body: TEST_GROUP_DATA_TO_UPDATE,
+                } as unknown as Request;
+
+                await groupController.updateGroup(request, response, next);
+
+                const jsonMock = (response.json as jest.Mock).mock;
+                expect(jsonMock.calls).toHaveLength(0);
+            },
+        );
+    });
 });
