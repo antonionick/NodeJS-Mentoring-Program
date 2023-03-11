@@ -27,6 +27,7 @@ export class GroupController {
             if (groupServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
                 next(errorHandlerData);
+                return;
             }
 
             const group = groupServiceResult.data!;

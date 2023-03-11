@@ -186,6 +186,7 @@ describe('User Controller', () => {
     });
 
     describe('getUserById method', () => {
+        const ERROR_TEST_USER_ID = 'some';
         const TEST_USER: User = new User({
             id: 'user_id',
             login: 'login1@mail.com',
@@ -275,7 +276,7 @@ describe('User Controller', () => {
         test(
             'in case of error next callback should be called with an error',
             async () => {
-                request.params = { id: 'some' };
+                request.params = { id: ERROR_TEST_USER_ID };
 
                 await userController.getUserById(request, response, next);
 
@@ -287,7 +288,7 @@ describe('User Controller', () => {
         test(
             'in case of error should pass instance of ErrorHandlerData to next callback ',
             async () => {
-                request.params = { id: 'some' };
+                request.params = { id: ERROR_TEST_USER_ID };
 
                 await userController.getUserById(request, response, next);
 
@@ -301,7 +302,7 @@ describe('User Controller', () => {
         test(
             'in case of error the status method of response should not be called',
             async () => {
-                request.params = { id: 'some' };
+                request.params = { id: ERROR_TEST_USER_ID };
 
                 await userController.getUserById(request, response, next);
 
@@ -313,7 +314,7 @@ describe('User Controller', () => {
         test(
             'in case of error the json method of response should not be called',
             async () => {
-                request.params = { id: 'some' };
+                request.params = { id: ERROR_TEST_USER_ID };
 
                 await userController.getUserById(request, response, next);
 
