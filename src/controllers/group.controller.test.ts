@@ -190,4 +190,129 @@ describe('Group Controller', () => {
             },
         );
     });
+
+    describe('getAllGroups', () => {
+        const TEST_GROUPS: Group[] = [
+            new Group({
+                id: 'group_id',
+                name: 'group_name',
+                permissions: [GroupPermission.Read],
+            }),
+            new Group({
+                id: 'group_id',
+                name: 'group_name2',
+                permissions: [GroupPermission.Write],
+            }),
+        ];
+
+        const applyGetAllGroupsErrorApproach = () => {
+            const getAllGroupsHandler = async () =>
+                new GroupServiceResult<Group[]>({ error: 'test error text' });
+            groupService.getAllGroups = jest.fn(getAllGroupsHandler);
+        };
+
+        beforeEach(() => {
+            const getAllGroupsHandler = async () =>
+                new GroupServiceResult<Group[]>({ data: TEST_GROUPS });
+            groupService.getAllGroups = jest.fn(getAllGroupsHandler);
+        });
+
+        test(`should call the status method of response`, async () => {
+            await groupController.getAllGroups(request, response, next);
+
+            const statusMock = (response.status as jest.Mock).mock;
+            expect(statusMock.calls).toHaveLength(1);
+        });
+
+        test(`the status method of response should be ${StatusCodes.OK}`, async () => {
+            await groupController.getAllGroups(request, response, next);
+
+            const statusMock = (response.status as jest.Mock).mock;
+            const statusFirstCall = statusMock.calls[0];
+            const firstCallArgument = statusFirstCall[0];
+            expect(firstCallArgument).toBe(StatusCodes.OK);
+        });
+
+        test('should call the json method of response', async () => {
+            await groupController.getAllGroups(request, response, next);
+
+            const jsonMock = (response.json as jest.Mock).mock;
+            expect(jsonMock.calls).toHaveLength(1);
+        });
+
+        test('the json method of response should receive value from handler', async () => {
+            await groupController.getAllGroups(request, response, next);
+
+            const jsonMock = (response.json as jest.Mock).mock;
+            const jsonFirstCall = jsonMock.calls[0];
+            const firstCallArgument = jsonFirstCall[0];
+
+            const getAllGroupsMock = (groupService.getAllGroups as jest.Mock).mock;
+            const groupServiceResult = await getAllGroupsMock.results[0].value;
+            const resultValue = groupServiceResult.data!;
+
+            expect(firstCallArgument).toBe(resultValue);
+        });
+
+        test('should call next function without arguments', async () => {
+            await groupController.getAllGroups(request, response, next);
+
+            const nextMock = (next as jest.Mock).mock;
+            expect(nextMock.calls).toHaveLength(1);
+
+            const nextMockFirstCall = nextMock.calls[0];
+            const firstCallArgument = nextMockFirstCall[0];
+            expect(firstCallArgument).toBe(undefined);
+        });
+
+        test(
+            'in case of error next callback should be called with an error',
+            async () => {
+                applyGetAllGroupsErrorApproach();
+
+                await groupController.getAllGroups(request, response, next);
+
+                const nextMock = (next as jest.Mock).mock;
+                expect(nextMock.calls).toHaveLength(1);
+            },
+        );
+
+        test(
+            'in case of error should pass instance of ErrorHandlerData to next callback ',
+            async () => {
+                applyGetAllGroupsErrorApproach();
+
+                await groupController.getAllGroups(request, response, next);
+
+                const nextMock = (next as jest.Mock).mock;
+                const nextMockFirstCall = nextMock.calls[0];
+                const firstCallArgument = nextMockFirstCall[0];
+                expect(firstCallArgument).toBeInstanceOf(ErrorHandlerData);
+            },
+        );
+
+        test(
+            'in case of error the status method of response should not be called',
+            async () => {
+                applyGetAllGroupsErrorApproach();
+
+                await groupController.getAllGroups(request, response, next);
+
+                const statusMock = (response.status as jest.Mock).mock;
+                expect(statusMock.calls).toHaveLength(0);
+            },
+        );
+
+        test(
+            'in case of error the json method of response should not be called',
+            async () => {
+                applyGetAllGroupsErrorApproach();
+
+                await groupController.getAllGroups(request, response, next);
+
+                const jsonMock = (response.json as jest.Mock).mock;
+                expect(jsonMock.calls).toHaveLength(0);
+            },
+        );
+    });
 });
