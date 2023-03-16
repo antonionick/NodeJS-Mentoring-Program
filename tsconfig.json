@@ -11,15 +11,33 @@
         "moduleResolution": "node",
         "baseUrl": "./src",
         "paths": {
-            "@config/*": ["config/*"],
-            "@common/*": ["common/*"],
-            "@routes/*": ["routes/*"],
-            "@database/*": ["database/*"],
-            "@components/*": ["components/*"],
-            "@controllers/*": ["controllers/*"],
-            "@validators/*": ["validators/*"],
-            "@logger/*": ["logger/*"],
-            "@authenticator/*": ["authenticator/*"]
+            "@config/*": [
+                "config/*"
+            ],
+            "@common/*": [
+                "common/*"
+            ],
+            "@routes/*": [
+                "routes/*"
+            ],
+            "@database/*": [
+                "database/*"
+            ],
+            "@components/*": [
+                "components/*"
+            ],
+            "@controllers/*": [
+                "controllers/*"
+            ],
+            "@validators/*": [
+                "validators/*"
+            ],
+            "@logger/*": [
+                "logger/*"
+            ],
+            "@authenticator/*": [
+                "authenticator/*"
+            ]
         },
         "resolveJsonModule": true,
         "outDir": "dist",
@@ -42,6 +60,13 @@
         "allowUnreachableCode": true,
         "skipLibCheck": true,
         "allowJs": true,
-        "sourceMap" : true
-    }
+        "sourceMap": true
+    },
+    "include": [
+        "src/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "src/**/*.test.ts"
+    ]
 }

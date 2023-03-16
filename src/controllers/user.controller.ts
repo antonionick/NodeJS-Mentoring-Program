@@ -1,19 +1,19 @@
 import type { IUserDatabaseModel, IUserDataToCreate, IUserDataToUpdate, UserServiceResult } from '@components/user/user.models';
-import { UserService } from '@components/user/user.service';
+import type { UserService } from '@components/user/user.service';
 import type { IDatabaseProvider } from '@database/models/database-provider.models';
 import type { IValidatorProvider } from '@validators/models/validators-provider.models';
 import type { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes/build/cjs/status-codes';
 import { ErrorHandlerData } from '@common/models/error-handler-data.models';
 import type { PassportAuthenticator } from '@authenticator/passport.authenticator';
+import type { UserServiceProvider } from '@components/user/user-service.provider';
 
 export class UserController {
-    private userService: UserService;
-
     constructor(
         private readonly databaseProvider: IDatabaseProvider,
         private readonly validatorProvider: IValidatorProvider,
         private readonly authenticator: PassportAuthenticator,
+        private readonly userServiceProvider: UserServiceProvider,
     ) { }
 
     public async login(
@@ -46,7 +46,7 @@ export class UserController {
             const userServiceResult = await userService.getUserById(id);
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
-                next(errorHandlerData);
+                return next(errorHandlerData);
             }
 
             const user = userServiceResult.data!;
@@ -81,7 +81,7 @@ export class UserController {
                 .getAutosuggestUsers(loginSubstring as string, Number(limit));
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
-                next(errorHandlerData);
+                return next(errorHandlerData);
             }
 
             const autosuggestUsers = userServiceResult.data!;
@@ -108,7 +108,7 @@ export class UserController {
             const userServiceResult = await userService.createUser(userDataToCreate);
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
-                next(errorHandlerData);
+                return next(errorHandlerData);
             }
 
             const user = userServiceResult.data!;
@@ -144,7 +144,7 @@ export class UserController {
             const userServiceResult = await userService.updateUser(userIdToUpdate, userDataToUpdate);
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
-                next(errorHandlerData);
+                return next(errorHandlerData);
             }
 
             const user = userServiceResult.data!;
@@ -178,7 +178,7 @@ export class UserController {
             const userServiceResult = await userService.deleteUser(userIdToDelete);
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
-                next(errorHandlerData);
+                return next(errorHandlerData);
             }
 
             const isDeleted = userServiceResult.data!;
@@ -213,7 +213,7 @@ export class UserController {
                 .addUsersToGroup(groupId as string, usersIds as string[]);
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
-                next(errorHandlerData);
+                return next(errorHandlerData);
             }
 
             const areUsersAdded = userServiceResult.data!;
@@ -229,13 +229,7 @@ export class UserController {
     }
 
     private getUserService(): UserService {
-        if (!this.userService) {
-            const userDatabase = this.databaseProvider.getUserDatabase();
-            const groupDatabase = this.databaseProvider.getGroupDatabase();
-            const userValidator = this.validatorProvider.getUserValidator();
-            const userService = new UserService(userDatabase, groupDatabase, userValidator);
-            this.userService = userService;
-        }
-        return this.userService;
+        return this.userServiceProvider
+            .provideUserService(this.databaseProvider, this.validatorProvider);
     }
 }

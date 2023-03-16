@@ -1,18 +1,17 @@
 import type { GroupServiceResult, IGroupDataToCreate, IGroupDataToUpdate } from '@components/group/group.models';
-import { GroupService } from '@components/group/group.service';
+import type { GroupService } from '@components/group/group.service';
 import type { IDatabaseProvider } from '@database/models/database-provider.models';
 import type { IValidatorProvider } from '@validators/models/validators-provider.models';
 import type { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { AppLogger } from '@logger/app-logger';
 import { ErrorHandlerData } from '@common/models/error-handler-data.models';
+import type { GroupServiceProvider } from '@components/group/group-service.provider';
 
 export class GroupController {
-    private groupService: GroupService;
-
     constructor(
         private readonly databaseProvider: IDatabaseProvider,
         private readonly validatorProvider: IValidatorProvider,
+        private readonly groupServiceProvider: GroupServiceProvider,
     ) { }
 
     public async getGroupById(
@@ -27,7 +26,7 @@ export class GroupController {
             const groupServiceResult = await groupService.getGroupById(id);
             if (groupServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
-                next(errorHandlerData);
+                return next(errorHandlerData);
             }
 
             const group = groupServiceResult.data!;
@@ -60,7 +59,7 @@ export class GroupController {
             const groupServiceResult = await groupService.getAllGroups();
             if (groupServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
-                next(errorHandlerData);
+                return next(errorHandlerData);
             }
 
             const groups = groupServiceResult.data!;
@@ -87,7 +86,7 @@ export class GroupController {
             const groupServiceResult = await groupService.createGroup(groupDataToCreate);
             if (groupServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
-                next(errorHandlerData);
+                return next(errorHandlerData);
             }
 
             const createdGroup = groupServiceResult.data!;
@@ -122,7 +121,7 @@ export class GroupController {
             const groupServiceResult = await groupService.updateGroup(groupIdToUpdate, groupDataToUpdate);
             if (groupServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
-                next(errorHandlerData);
+                return next(errorHandlerData);
             }
 
             const updatedGroup = groupServiceResult.data!;
@@ -155,7 +154,7 @@ export class GroupController {
             const groupServiceResult = await groupService.deleteGroup(groupIdToDelete);
             if (groupServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
-                next(errorHandlerData);
+                return next(errorHandlerData);
             }
 
             const isDeleted = groupServiceResult.data!;
@@ -171,11 +170,7 @@ export class GroupController {
     }
 
     private getGroupService(): GroupService {
-        if (!this.groupService) {
-            const database = this.databaseProvider.getGroupDatabase();
-            const validator = this.validatorProvider.getGroupValidator();
-            this.groupService = new GroupService(database, validator);
-        }
-        return this.groupService;
+        return this.groupServiceProvider
+            .provideGroupService(this.databaseProvider, this.validatorProvider);
     }
 }
