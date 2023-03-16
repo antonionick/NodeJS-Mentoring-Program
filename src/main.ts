@@ -7,6 +7,8 @@ import { PostgresqlDatabaseProvider, PostgresqlDatabaseProviderInitOptions } fro
 import { JoiValidatorProvider } from '@validators/joi/joi-validator.provider';
 import { AppLogger } from '@logger/app-logger';
 import { WinstonLoggerProvider } from '@logger/winston-logger/models/winston-logger.provider';
+import { PassportAuthenticator } from '@authenticator/passport.authenticator';
+import type { IDatabaseProvider } from '@database/models/database-provider.models';
 
 class Main {
     public static async init(): Promise<void> {
@@ -19,9 +21,11 @@ class Main {
             const validatorProvider = new JoiValidatorProvider();
             const databaseProvider = await Main.initPostgreSQLProvider(dotenvOptions.databaseConnectionString);
 
+            const authenticator = Main.initAuthenticator(databaseProvider);
+
             const app = Main.initApp(dotenvOptions.port);
 
-            initRoutes(app, databaseProvider, validatorProvider);
+            initRoutes(app, databaseProvider, validatorProvider, authenticator);
         } catch (error) {
             AppLogger.fatal(error as object);
         }
@@ -55,6 +59,14 @@ class Main {
         await database.initDatabase(initOptions);
 
         return database;
+    }
+
+    private static initAuthenticator(
+        databaseProvider: IDatabaseProvider,
+    ): PassportAuthenticator {
+        const userDatabase = databaseProvider.getUserDatabase();
+        const passportAuthenticator = PassportAuthenticator.init(userDatabase);
+        return passportAuthenticator;
     }
 
     private static initApp(port: number): Express {

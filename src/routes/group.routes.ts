@@ -1,3 +1,4 @@
+import type { PassportAuthenticator } from '@authenticator/passport.authenticator';
 import { logInfoMiddleware } from '@common/middlewares/log-info.middleware';
 import { GroupController } from '@controllers/group.controller';
 import type { IDatabaseProvider } from '@database/models/database-provider.models';
@@ -7,9 +8,12 @@ import { Router } from 'express';
 export function getGroupRoutes(
     databaseProvider: IDatabaseProvider,
     validatorProvider: IValidatorProvider,
+    authenticator: PassportAuthenticator,
 ): Router {
     const groupRouter = Router();
     const groupController = new GroupController(databaseProvider, validatorProvider);
+
+    groupRouter.use(authenticator.getBearerStrategyAuthenticator());
 
     groupRouter.get(
         '/',
