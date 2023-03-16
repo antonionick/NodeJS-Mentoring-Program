@@ -46,8 +46,7 @@ export class UserController {
             const userServiceResult = await userService.getUserById(id);
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
-                next(errorHandlerData);
-                return;
+                return next(errorHandlerData);
             }
 
             const user = userServiceResult.data!;
@@ -82,8 +81,7 @@ export class UserController {
                 .getAutosuggestUsers(loginSubstring as string, Number(limit));
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
-                next(errorHandlerData);
-                return;
+                return next(errorHandlerData);
             }
 
             const autosuggestUsers = userServiceResult.data!;
@@ -110,8 +108,7 @@ export class UserController {
             const userServiceResult = await userService.createUser(userDataToCreate);
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
-                next(errorHandlerData);
-                return;
+                return next(errorHandlerData);
             }
 
             const user = userServiceResult.data!;
@@ -147,8 +144,7 @@ export class UserController {
             const userServiceResult = await userService.updateUser(userIdToUpdate, userDataToUpdate);
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
-                next(errorHandlerData);
-                return;
+                return next(errorHandlerData);
             }
 
             const user = userServiceResult.data!;
@@ -182,8 +178,7 @@ export class UserController {
             const userServiceResult = await userService.deleteUser(userIdToDelete);
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
-                next(errorHandlerData);
-                return;
+                return next(errorHandlerData);
             }
 
             const isDeleted = userServiceResult.data!;
@@ -218,8 +213,7 @@ export class UserController {
                 .addUsersToGroup(groupId as string, usersIds as string[]);
             if (userServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(userServiceResult)
-                next(errorHandlerData);
-                return;
+                return next(errorHandlerData);
             }
 
             const areUsersAdded = userServiceResult.data!;

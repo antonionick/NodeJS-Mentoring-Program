@@ -26,8 +26,7 @@ export class GroupController {
             const groupServiceResult = await groupService.getGroupById(id);
             if (groupServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
-                next(errorHandlerData);
-                return;
+                return next(errorHandlerData);
             }
 
             const group = groupServiceResult.data!;
@@ -60,8 +59,7 @@ export class GroupController {
             const groupServiceResult = await groupService.getAllGroups();
             if (groupServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
-                next(errorHandlerData);
-                return;
+                return next(errorHandlerData);
             }
 
             const groups = groupServiceResult.data!;
@@ -88,8 +86,7 @@ export class GroupController {
             const groupServiceResult = await groupService.createGroup(groupDataToCreate);
             if (groupServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
-                next(errorHandlerData);
-                return;
+                return next(errorHandlerData);
             }
 
             const createdGroup = groupServiceResult.data!;
@@ -124,8 +121,7 @@ export class GroupController {
             const groupServiceResult = await groupService.updateGroup(groupIdToUpdate, groupDataToUpdate);
             if (groupServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
-                next(errorHandlerData);
-                return;
+                return next(errorHandlerData);
             }
 
             const updatedGroup = groupServiceResult.data!;
@@ -158,8 +154,7 @@ export class GroupController {
             const groupServiceResult = await groupService.deleteGroup(groupIdToDelete);
             if (groupServiceResult.hasError!()) {
                 const errorHandlerData = this.getErrorHandlerData(groupServiceResult)
-                next(errorHandlerData);
-                return;
+                return next(errorHandlerData);
             }
 
             const isDeleted = groupServiceResult.data!;
